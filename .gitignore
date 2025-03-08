@@ -9,7 +9,7 @@
 *.pem
 config.js
 config.json
-env.js
+#env.js
 
 # Dependencies
 node_modules/
