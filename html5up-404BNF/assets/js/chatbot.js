@@ -10,7 +10,7 @@ let waitingForResponse = false;
 const API_URL = "https://api.openai.com/v1/chat/completions";
 
 // API key 
-const API_KEY = "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";
+const OPENAI_API_KEY = os.getenv("OPENAI_API_KEY");
 
 // Conversation history for context
 let conversationHistory = [
@@ -54,7 +54,7 @@ async function generateResponse(userAction) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`
+                "Authorization": `Bearer ${OPENAI_API_KEY}`
             },
             body: JSON.stringify({
                 model: "gpt-3.5-turbo",
