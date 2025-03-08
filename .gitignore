@@ -40,6 +40,7 @@ yarn-error.log*
 *.tmp
 *.temp
 .cache/
+env.js
 
 # System Files
 .DS_Store
