@@ -1,7 +1,4 @@
 
-// Load environment variables from .env file
-require('dotenv').config();
-
 // Fetch API key from server
 /*fetch('/maps-api-key')
   .then(response => response.json())
@@ -19,7 +16,7 @@ require('dotenv').config();
   });*/
 
 const script = document.createElement('script');
-const apiKey = process.env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
+const apiKey = MapAPIPhrase(); // TODO: Replace with API Key
 script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
 script.async = true;
 script.defer = true;
