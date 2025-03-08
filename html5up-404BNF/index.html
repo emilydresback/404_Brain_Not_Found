@@ -22,6 +22,24 @@
 				
 				<!-- Chatbot Container -->
 				<div id="chatbot-container">
+					<div class="chatBot">
+        				<header>
+            					<h2>ChatBot</h2>
+            					<span alt="Close" 
+                 				 id="cross" 
+                 				 onclick="cancel()">X</span>
+        				</header>
+        				<ul class="chatbox">
+            				<li class="chat-incoming chat">
+                				<p>Hey! How can I assist you today?</p>
+            				</li>
+        				</ul>
+       				 <div class="chat-input">
+            <textarea rows="0" cols="17"
+                      placeholder="Enter a message..."></textarea>
+            <button id="sendBTN">Send</button>
+        </div>
+    </div>
 					<div id="chat-messages">
 						<div class="bot-message">Welcome to the DeathValleyDash! I'll guide you with riddles to help you find hidden locations around Clemson. Ready to start?</div>
 					</div>
@@ -58,7 +76,7 @@
 				<!-- One -->
 				<section id="one">
 					<header class="major">
-						<h2>DeathValleyDash Scavenger Hunt</h2>
+					<h2>DeathValleyDash Scavenger Hunt</h2>
 					</header>
 					<p>Explore Clemson's campus in this interactive scavenger hunt! Track your location and discover hidden landmarks around campus. Follow the riddles from our AI guide and use your phone's GPS to find each location.</p>
 					<ul class="actions">
