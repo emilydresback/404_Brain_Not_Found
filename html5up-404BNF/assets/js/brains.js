@@ -2,7 +2,7 @@
 let riddleMap = new Map(); // Global storage for POIs and their riddles
 
 async function getPointsOfInterest(lat, lng) {
-    let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
+    //let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
     const radius = 1609; // 1 mile in meters
     const type = 'point_of_interest';
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
