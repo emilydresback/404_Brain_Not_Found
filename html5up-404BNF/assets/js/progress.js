@@ -1,206 +1,5 @@
-// DeathValleyDash Progress Tracking and Location Verification 
-// This file handles location verification and progress tracking for the scavenger hunt
-
-// Function to verify current location
-function verifyCurrentLocation() {
-    console.log("Verifying location button clicked");
-    
-    // Check if the DeathValleyDash namespace exists
-    if (!window.DeathValleyDash || !window.DeathValleyDash.currentUserPosition) {
-        console.error("User position not available");
-        updateLocationDisplay("Unable to determine your location. Please ensure location services are enabled.");
-        return;
-    }
-    
-    // Display the user's current location
-    const userLat = window.DeathValleyDash.currentUserPosition.lat.toFixed(6);
-    const userLng = window.DeathValleyDash.currentUserPosition.lng.toFixed(6);
-    updateLocationDisplay(`Your current location: ${userLat}, ${userLng}`);
-    
-    console.log("Current position:", window.DeathValleyDash.currentUserPosition);
-
-    // Check if there are hunt locations defined
-    if (!window.DeathValleyDash.huntLocations || window.DeathValleyDash.huntLocations.length === 0) {
-        console.error("Hunt locations not defined");
-        updateLocationDisplay("Hunt locations are not configured. Please refresh the page.");
-        return;
-    }
-    
-    // For testing purposes - if isHalfway is true, make it false and complete the current step
-    // Otherwise, set isHalfway to true to show progress toward next location
-    if (window.DeathValleyDash.isHalfway) {
-        // Complete the current step
-        const nextLocationIndex = window.DeathValleyDash.foundLocations + 1;
-        
-        if (nextLocationIndex <= window.DeathValleyDash.totalLocations) {
-            // Mark the location as found
-            if (window.DeathValleyDash.huntLocations[nextLocationIndex - 1]) {
-                window.DeathValleyDash.huntLocations[nextLocationIndex - 1].found = true;
-                window.DeathValleyDash.isHalfway = false;
-                
-                // Get the location name
-                const locationName = window.DeathValleyDash.huntLocations[nextLocationIndex - 1].name || `Location ${nextLocationIndex}`;
-                
-                // Update the progress bar
-                updateProgress(nextLocationIndex, false);
-                window.DeathValleyDash.foundLocations = nextLocationIndex;
-                
-                // Show success message
-                updateLocationDisplay(`You found ${locationName}! ${nextLocationIndex} out of ${window.DeathValleyDash.totalLocations} locations found.`);
-                
-                // If we have a riddle chatbot, advance to the next riddle
-                if (typeof window.advanceToNextRiddle === 'function') {
-                    window.advanceToNextRiddle();
-                }
-                
-                // If using a map, add a marker for the found location
-                addLocationMarker(nextLocationIndex - 1, locationName);
-            }
-        }
-    } else {
-        // Set to halfway for the next location
-        window.DeathValleyDash.isHalfway = true;
-        const currentStep = window.DeathValleyDash.foundLocations;
-        
-        if (currentStep < window.DeathValleyDash.totalLocations) {
-            // Update progress to show halfway
-            updateProgress(currentStep, true);
-            
-            // Show halfway message
-            updateLocationDisplay(`You're getting closer to the next location! Keep exploring.`);
-        }
-    }
-}
-
-// Helper function to add a marker to the map
-function addLocationMarker(locationIndex, locationName) {
-    if (window.DeathValleyDash.map && window.DeathValleyDash.huntLocations[locationIndex].position) {
-        const marker = new google.maps.Marker({
-            position: window.DeathValleyDash.huntLocations[locationIndex].position,
-            map: window.DeathValleyDash.map,
-            icon: {
-                url: 'images/location-found.png', // Replace with your custom marker
-                scaledSize: new google.maps.Size(32, 32)
-            },
-            title: locationName
-        });
-    }
-}
-
-// Function to update the location display on the page
-function updateLocationDisplay(message) {
-    const locationDisplay = document.getElementById('location-coordinates');
-    if (locationDisplay) {
-        locationDisplay.textContent = message;
-        locationDisplay.style.display = 'block'; // Make sure it's visible
-    } else {
-        // If location-coordinates element doesn't exist, update map-status as fallback
-        const mapStatus = document.getElementById('map-status');
-        if (mapStatus) {
-            mapStatus.textContent = message;
-        } else {
-            console.error("Location display elements not found");
-            alert(message);
-        }
-    }
-}
-
-// Function to update progress bar based on current progress
-function updateProgress(stepNumber, isHalfway) {
-    // Get all progress nodes
-    const nodes = document.querySelectorAll('.progress-node');
-    const progressFill = document.getElementById('progress-fill');
-    
-    if (!progressFill || nodes.length === 0) {
-        console.error("Progress bar elements not found");
-        return;
-    }
-    
-    // Update DeathValleyDash found locations counter
-    window.DeathValleyDash = window.DeathValleyDash || {};
-    window.DeathValleyDash.foundLocations = stepNumber;
-    window.DeathValleyDash.totalLocations = window.DeathValleyDash.totalLocations || nodes.length;
-    
-    // Node positions are at 10%, 30%, 50%, 70%, 90%
-    // Map step numbers directly to these percentages
-    let progressPercent = 0;
-    
-    // If isHalfway is true, show halfway to the next node
-    if (isHalfway) {
-        switch(stepNumber) {
-            case 0: // Halfway to first node
-                progressPercent = 5; // Halfway to 10%
-                break;
-            case 1: // Halfway to second node
-                progressPercent = 20; // Halfway between 10% and 30%
-                break;
-            case 2: // Halfway to third node
-                progressPercent = 40; // Halfway between 30% and 50%
-                break;
-            case 3: // Halfway to fourth node
-                progressPercent = 60; // Halfway between 50% and 70%
-                break;
-            case 4: // Halfway to fifth node
-                progressPercent = 80; // Halfway between 70% and 90%
-                break;
-            default:
-                progressPercent = 0;
-        }
-    } else {
-        // Full node positions
-        switch(stepNumber) {
-            case 1:
-                progressPercent = 10; // First node position
-                break;
-            case 2:
-                progressPercent = 30; // Second node position
-                break;
-            case 3:
-                progressPercent = 50; // Third node position
-                break;
-            case 4:
-                progressPercent = 70; // Fourth node position
-                break;
-            case 5:
-                progressPercent = 90; // Fifth node position
-                break;
-            default:
-                progressPercent = 0;
-        }
-    }
-    
-    console.log(`Updating progress bar to ${progressPercent}% for step ${stepNumber} ${isHalfway ? '(halfway)' : ''}`);
-    
-    // Update the progress fill width
-    progressFill.style.width = progressPercent + "%";
-    
-    // Update node styles
-    nodes.forEach((node, index) => {
-        // Determine if this node should be active
-        const nodeNumber = index + 1;
-        
-        if (nodeNumber <= stepNumber) {
-            // Active/completed node
-            node.style.backgroundColor = '#F56600';
-            node.style.borderColor = '#F56600';
-            node.style.color = 'white';
-        } else {
-            // Inactive node
-            node.style.backgroundColor = '#f1f1f1';
-            node.style.borderColor = '#ccc';
-            node.style.color = '#333';
-        }
-    });
-    
-    console.log(`Progress updated: ${stepNumber}/${window.DeathValleyDash.totalLocations} locations found`);
-    
-    // Check if all locations are found
-    if (stepNumber >= window.DeathValleyDash.totalLocations) {
-        console.log("All locations found! Showing congratulations popup.");
-        showCongratulationsPopup();
-    }
-}
-
+// Simple Progress Bar Implementation
+// This is a completely rewritten version with minimal complexity
 // Function to show congratulations popup
 function showCongratulationsPopup() {
     // Check if popup already exists (avoid duplicates)
@@ -312,85 +111,162 @@ function showCongratulationsPopup() {
     document.body.appendChild(popup);
 }
 
-// Make sure we attach the event listener properly
-document.addEventListener('DOMContentLoaded', function() {
-    // Set up DeathValleyDash namespace if it doesn't exist
-    window.DeathValleyDash = window.DeathValleyDash || {};
-    window.DeathValleyDash.foundLocations = window.DeathValleyDash.foundLocations || 0;
-    window.DeathValleyDash.totalLocations = window.DeathValleyDash.totalLocations || 5; // Update this based on your actual number of locations
-    window.DeathValleyDash.isHalfway = window.DeathValleyDash.isHalfway || false;
+// Initialize the DeathValleyDash namespace with basic properties
+window.DeathValleyDash = {
+    currentStep: 0,
+    totalSteps: 5,  // Total number of riddles
+    nodePositions: [10, 30, 50, 70, 90] // Percentage positions for the 5 nodes
+};
+
+// Function to update the progress bar
+function updateProgressBar(step) {
+    // Get DOM elements
+    const progressFill = document.getElementById('progress-fill');
+    const nodes = document.querySelectorAll('.progress-node');
     
-    // Get the verification button
-    const verifyButton = document.getElementById('verify-location-btn');
-    
-    // Center the text in the button
-    if (verifyButton) {
-        verifyButton.style.display = "flex";
-        verifyButton.style.alignItems = "center";
-        verifyButton.style.justifyContent = "center";
-        verifyButton.style.textAlign = "center";
-        
-        console.log("Verify location button found, attaching event listener");
-        
-        // Remove any existing listeners to avoid duplicates
-        const newButton = verifyButton.cloneNode(true);
-        verifyButton.parentNode.replaceChild(newButton, verifyButton);
-        
-        // Add our new listener
-        newButton.addEventListener('click', verifyCurrentLocation);
-    } else {
-        console.error("Verify location button not found in DOM");
+    if (!progressFill || nodes.length === 0) {
+        console.error("Progress bar elements not found");
+        return;
     }
     
-    // Add click handler to progress container to advance progress (for testing)
-    const progressContainer = document.getElementById('progress-container');
-    if (progressContainer) {
-        progressContainer.addEventListener('click', function() {
-            // Toggle between halfway and full positions
-            if (window.DeathValleyDash.isHalfway) {
-                // Move to the next full position
-                const nextStep = (window.DeathValleyDash.foundLocations || 0) + 1;
-                window.DeathValleyDash.isHalfway = false;
+    // Validate the step number
+    if (step < 0) step = 0;
+    if (step > window.DeathValleyDash.totalSteps) step = window.DeathValleyDash.totalSteps;
+    
+    // Save the current step
+    window.DeathValleyDash.currentStep = step;
+    
+    // Calculate progress percentage
+    let percentage = 0;
+    
+    // For steps 1-5, use the predefined node positions
+    if (step > 0 && step <= 5) {
+        percentage = window.DeathValleyDash.nodePositions[step - 1];
+    } 
+    // For steps 6-15, distribute the remaining space (90-100%)
+    else if (step > 5) {
+        const remainingSteps = window.DeathValleyDash.totalSteps - 5;
+        const remainingPercentage = 10; // From 90% to 100%
+        const extraStep = step - 5;
+        
+        // Calculate additional percentage beyond 90%
+        const additionalPercentage = (extraStep / remainingSteps) * remainingPercentage;
+        percentage = 90 + additionalPercentage;
+    }
+    
+    // Set the width of the progress fill
+    progressFill.style.width = percentage + '%';
+    
+    // Update node colors
+    // For step <= 5, highlight nodes up to the current step
+    // For step > 5, highlight all 5 nodes
+    const activeNodes = Math.min(step, 5);
+    
+    nodes.forEach((node, index) => {
+        if (index < activeNodes) {
+            // Active node
+            node.style.backgroundColor = '#F56600';
+            node.style.borderColor = '#F56600';
+            node.style.color = 'white';
+        } else {
+            // Inactive node
+            node.style.backgroundColor = '#f1f1f1';
+            node.style.borderColor = '#ccc';
+            node.style.color = '#333';
+        }
+    });
+    
+    console.log(`Progress updated: ${step}/${window.DeathValleyDash.totalSteps}, width: ${percentage}%`);
+    
+    // Check if all steps are complete
+    if (step >= window.DeathValleyDash.totalSteps) {
+        // Show completion message or trigger completion event
+        showCompletionMessage();
+    }
+}
+
+// Function to advance to the next step
+function advanceProgress() {
+    const nextStep = window.DeathValleyDash.currentStep + 1;
+    if (nextStep <= window.DeathValleyDash.totalSteps) {
+        updateProgressBar(nextStep);
+        return true;
+    }
+    return false;
+}
+
+// Function to show completion message
+function showCompletionMessage() {
+    // Show congratulations popup or message
+    if (typeof showCongratulationsPopup === 'function') {
+        showCongratulationsPopup();
+    } else {
+        console.log("All riddles completed!");
+        alert("Congratulations! You've completed all the riddles!");
+    }
+}
+
+// Initialize the progress bar on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize progress bar to step 0
+    updateProgressBar(0);
+    
+    // Get the solve button
+    const solveButton = document.getElementById('verify-location-btn');
+    
+    // Configure the solve button
+    if (solveButton) {
+        solveButton.style.display = "none"; // Initially hidden
+        solveButton.style.alignItems = "center";
+        solveButton.style.justifyContent = "center";
+        solveButton.style.textAlign = "center";
+        
+        // Remove any existing listeners and add new one
+        const newButton = solveButton.cloneNode(true);
+        solveButton.parentNode.replaceChild(newButton, solveButton);
+        
+        // When solve button is clicked, advance to the next step
+        newButton.addEventListener('click', function() {
+            const advanced = advanceProgress();
+            
+            if (advanced) {
+                // If we have a riddle chatbot, advance to the next riddle
+                if (typeof window.advanceToNextRiddle === 'function') {
+                    window.advanceToNextRiddle();
+                }
                 
-                if (nextStep <= window.DeathValleyDash.totalLocations) {
-                    console.log(`Advancing progress to step ${nextStep}`);
-                    updateProgress(nextStep, false);
-                    
-                    // If we have a riddle chatbot, advance to the next riddle
-                    if (typeof window.advanceToNextRiddle === 'function') {
-                        window.advanceToNextRiddle();
-                    }
-                    
-                    // Update found locations
-                    window.DeathValleyDash.foundLocations = nextStep;
-                    
-                    // Show message
-                    updateLocationDisplay(`Found location ${nextStep}/${window.DeathValleyDash.totalLocations} (Test Mode)`);
+                // Show success message
+                const step = window.DeathValleyDash.currentStep;
+                const message = `Solved! You completed riddle ${step} of ${window.DeathValleyDash.totalSteps}!`;
+                if (typeof updateLocationDisplay === 'function') {
+                    updateLocationDisplay(message);
                 } else {
-                    console.log("All locations already found");
-                    updateLocationDisplay("All locations found! Hunt completed.");
+                    console.log(message);
                 }
             } else {
-                // Move to halfway to the next position
-                window.DeathValleyDash.isHalfway = true;
-                const currentStep = window.DeathValleyDash.foundLocations || 0;
-                
-                if (currentStep < window.DeathValleyDash.totalLocations) {
-                    console.log(`Setting halfway progress after step ${currentStep}`);
-                    updateProgress(currentStep, true);
-                    
-                    // Show message
-                    updateLocationDisplay(`Making progress toward next location... (Test Mode)`);
-                }
+                console.log("All riddles already completed!");
             }
         });
-        console.log("Added click handler to progress bar for testing with halfway positions");
+    } else {
+        console.error("Solve button not found");
     }
-    
-    // Initialize progress bar if needed
-    if (window.DeathValleyDash.foundLocations > 0) {
-        updateProgress(window.DeathValleyDash.foundLocations, window.DeathValleyDash.isHalfway);
-    }
-
-    console.log("progress.js initialized successfully");
 });
+
+// Function to show the solve button (called when start hunt is clicked)
+function showSolveButton() {
+    const solveButton = document.getElementById('verify-location-btn');
+    if (solveButton) {
+        solveButton.style.display = "flex";
+    }
+}
+
+// Function to update location display (fallback implementation)
+function updateLocationDisplay(message) {
+    const display = document.getElementById('location-coordinates');
+    if (display) {
+        display.textContent = message;
+        display.style.display = 'block';
+    } else {
+        console.log(message);
+    }
+}
