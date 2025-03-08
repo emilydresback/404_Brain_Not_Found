@@ -4,7 +4,7 @@ fetch('/maps-api-key')
   .then(response => response.json())
   .then(data => {
     const script = document.createElement('script');
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
+    const apiKey = env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
     script.async = true;
     script.defer = true;
