@@ -3275,6 +3275,8 @@ section .hunt-progress-container,
     padding: 10px;
     margin-bottom: 10px;
     max-width: 90%;
+    text-align: left;
+    color: #000000;
 }
 
 .user-message {
