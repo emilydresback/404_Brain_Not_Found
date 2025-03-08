@@ -62,12 +62,38 @@
 			<!-- Title -->
 			<h1 style="margin-bottom: 15px; font-weight: bold; font-size: 2em; color: #F56600;">Death Valley Dash</h1>
 
-			<!-- Clemson Campus Map -->
-			<div id="campus-map-container">
-				<h3>Clemson Campus Map</h3>
-				<div id="map" style="width: 100%; height: 400px; border-radius: 8px; margin-bottom: 20px;"></div>
-				<p id="map-status">Enable location services to see your position on the map</p>
+			<!-- Google Maps Container -->
+			<div id="map-container">
+				<!-- The map will be rendered in this div -->
+				<div id="map" style="width: 100%; height: 400px; border-radius: 8px;"></div>
+				
+				<!-- Status message for location tracking -->
+				<p id="map-status">Loading map... Please enable location services.</p>
+				
+				<!-- Location Verification Button -->
+				<div id="verification-container" style="margin-top: 10px; text-align: center;">
+				<button id="verify-location-btn" class="button primary" style="background-color: #F56600; padding: 10px 20px; font-weight: bold; color: white;">
+					Verify Current Location
+				</button>
+				</div>
 			</div>
+		</head>
+		<body>
+			<div id="map"></div>
+
+			<!-- 
+			The `defer` attribute causes the script to execute after the full HTML
+			document has been parsed. For non-blocking uses, avoiding race conditions,
+			and consistent behavior across browsers, consider loading using Promises. See
+			https://developers.google.com/maps/documentation/javascript/load-maps-js-api
+			for more information.
+			-->
+			<script
+			src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&language=en&region=JP"
+			defer
+			></script>
+
+
 			<!-- Location Verification Button -->
 			<div id="verification-container" style="margin-top: 10px; text-align: center;">
 				<button id="verify-location-btn" class="button primary" style="background-color: #F56600; padding: 10px 20px; font-weight: bold;">
