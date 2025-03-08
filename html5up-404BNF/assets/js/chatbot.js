@@ -103,6 +103,68 @@ async function generateResponse(userAction) {
     }
 }
 
+//Code to handle getting the initial locations and producing the riddles: Javascript Version
+
+async function getPointsOfInterest(lat, lng) {
+    const apiKey = 'MAPS_API_KEY'; // Replace with your API key
+    const radius = 1609; // 1 mile in meters
+    const type = 'point_of_interest'; // General category for points of interest
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.status !== "OK") {
+            throw new Error(`API Error: ${data.status}`);
+        }
+
+        // Get the first 5 points of interest
+        return data.results.slice(0, 5).map(place => ({
+            name: place.name,
+            address: place.vicinity,
+            location: place.geometry.location
+        }));
+    } catch (error) {
+        console.error("Error fetching points of interest:", error);
+        return [];
+    }
+}
+
+
+//Code to generate riddles
+
+async function getRiddlesForPOIs(pois) {
+    const apiKey = 'OPENAI_API_KEY'; // Replace with your OpenAI API key
+    const prompt = pois.map(poi => `Create a riddle about a place called "${poi.name}", which is located at "${poi.address}".`).join("\n");
+
+    const body = {
+        model: "gpt-4-turbo",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7
+    };
+
+    try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+        return pois.map((poi, index) => ({
+            ...poi,
+            riddle: data.choices[0].message.content.split("\n")[index] || "No riddle available."
+        }));
+    } catch (error) {
+        console.error("Error generating riddles:", error);
+        return pois.map(poi => ({ ...poi, riddle: "Could not generate a riddle." }));
+    }
+}
+
 // Handle button click
 hintButton.addEventListener("click", function() {
     // Prevent multiple clicks while waiting for response
