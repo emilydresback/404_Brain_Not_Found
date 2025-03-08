@@ -1,3 +1,4 @@
+'''
 import os
 import requests
 import json
@@ -35,4 +36,5 @@ def get_openai_response(prompt):
     except KeyError:
         raise ValueError(f"Unexpected API response: {response_data}")
 
-print(get_openai_response("Give me a hint about the point of interest different than the riddle provided"))
+print(get_openai_response("Give me a hint about the point of interest different than the riddle provided"))'
+'''
