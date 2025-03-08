@@ -1,212 +1,218 @@
-// Key locations on campus
-const locations = [
-    { id: "location1", name: "Tillman Hall", lat: 34.6796, lng: -82.8371, found: false },
-    { id: "location2", name: "Death Valley Stadium", lat: 34.6785, lng: -82.8417, found: false },
-    { id: "location3", name: "Cooper Library", lat: 34.6772, lng: -82.8367, found: false },
-    { id: "location4", name: "Botanical Gardens", lat: 34.6730, lng: -82.8230, found: false },
-    { id: "location5", name: "Hendrix Student Center", lat: 34.6755, lng: -82.8354, found: false }
-  ];
+
+// Fetch API key from server
+fetch('/maps-api-key')
+  .then(response => response.json())
+  .then(data => {
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${data.apiKey}&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+  })
+  .catch(error => {
+    console.error('Error loading API key:', error);
+    document.getElementById('map-status').textContent = 'Error loading map. Please try again later.';
+  });
+
+// Global variables
+let map;
+let userMarker;
+let huntLocations = [];
+let watchId;
+
+// Initialize the map (this function will be called by the Google Maps API once loaded)
+function initMap() {
+  // Default center on Clemson University
+  const clemsonCenter = { lat: 34.6765, lng: -82.8364 };
   
-  // Clemson center coordinates
-  const clemsonCenter = { lat: 34.6761, lng: -82.8364 };
-  
-  // Map variable
-  let map;
-  let userMarker;
-  const markers = [];
-  
-  // Initialize the map
-  function initMap() {
-    // Handle cases where Google Maps is not loaded
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-      document.getElementById('map').innerHTML = 
-        '<div style="text-align:center; padding:20px; background:#f8f8f8; border-radius:8px;">' +
-        '<p>Google Maps could not be loaded. Please check your API key and internet connection.</p>' +
-        '</div>';
-      return;
-    }
-  
-    // Create the map
-    map = new google.maps.Map(document.getElementById("map"), {
-      center: clemsonCenter,
-      zoom: 15,
-      mapTypeId: "roadmap",
-      mapTypeControl: false,
-      fullscreenControl: false
-    });
-    
-    // Add markers for key locations
-    locations.forEach(location => {
-      const marker = new google.maps.Marker({
-        position: { lat: location.lat, lng: location.lng },
-        map: map,
-        title: location.name,
-        icon: {
-          url: "https://maps.google.com/mapfiles/ms/icons/orange-dot.png"
-        }
-      });
-      
-      // Add info window
-      const infoWindow = new google.maps.InfoWindow({
-        content: `<div><strong>${location.name}</strong></div>`
-      });
-      
-      marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-        
-        // Toggle the location as found when marker is clicked
-        const locationElement = document.getElementById(location.id);
-        if (locationElement) {
-          toggleLocation(location.id);
-        }
-      });
-      
-      markers.push({ id: location.id, marker: marker });
-    });
-    
-    // Add user location tracking
-    trackUserLocation();
-  }
-  
-  // Track user location
-  function trackUserLocation() {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const userPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          
-          document.getElementById("map-status").textContent = 
-            `Your location: ${userPos.lat.toFixed(6)}, ${userPos.lng.toFixed(6)}`;
-          
-          // Add or update user marker
-          if (!userMarker) {
-            userMarker = new google.maps.Marker({
-              position: userPos,
-              map: map,
-              title: "Your Location",
-              icon: {
-                url: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-              }
-            });
-          } else {
-            userMarker.setPosition(userPos);
-          }
-          
-          // Check if user is near any locations
-          checkProximity(userPos);
-        },
-        (error) => {
-          document.getElementById("map-status").textContent = 
-            `Error: ${getGeolocationErrorMessage(error)}`;
-        },
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
-      );
-    } else {
-      document.getElementById("map-status").textContent = 
-        "Geolocation is not supported by this browser.";
-    }
-  }
-  
-  // Check if user is near any locations
-  function checkProximity(userPos) {
-    locations.forEach(location => {
-      const distance = getDistance(
-        userPos.lat, userPos.lng,
-        location.lat, location.lng
-      );
-      
-      // If within 50 meters of a location, mark it as found
-      if (distance < 50) {
-        const locationElement = document.getElementById(location.id);
-        if (locationElement && !location.found) {
-          // Mark as found if not already found
-          toggleLocation(location.id);
-          
-          // Update marker icon to green
-          const marker = markers.find(m => m.id === location.id);
-          if (marker) {
-            marker.marker.setIcon("https://maps.google.com/mapfiles/ms/icons/green-dot.png");
-          }
-        }
-      }
-    });
-  }
-  
-  // Calculate distance between two points in meters
-  function getDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371e3; // Earth radius in meters
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-  
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  
-    return R * c; // distance in meters
-  }
-  
-  // Get error message for geolocation errors
-  function getGeolocationErrorMessage(error) {
-    switch(error.code) {
-      case error.PERMISSION_DENIED:
-        return "User denied the request for Geolocation.";
-      case error.POSITION_UNAVAILABLE:
-        return "Location information is unavailable.";
-      case error.TIMEOUT:
-        return "The request to get user location timed out.";
-      default:
-        return "An unknown error occurred.";
-    }
-  }
-  
-  // Update marker when location is toggled
-  function updateMarker(locationId, isFound) {
-    const marker = markers.find(m => m.id === locationId);
-    if (marker) {
-      marker.marker.setIcon(isFound ? 
-        "https://maps.google.com/mapfiles/ms/icons/green-dot.png" : 
-        "https://maps.google.com/mapfiles/ms/icons/orange-dot.png");
-    }
-  }
-  
-  // Handle map loading errors
-  function handleMapError() {
-    console.error("Google Maps failed to load");
-    document.getElementById('map').innerHTML = 
-      '<div style="text-align:center; padding:20px; background:#f8f8f8; border-radius:8px;">' +
-      '<p>Google Maps could not be loaded. Please check your API key and internet connection.</p>' +
-      '</div>';
-  }
-  
-  // Override the toggleLocation function to also update markers
-  document.addEventListener('DOMContentLoaded', function() {
-    // Wait until the original toggleLocation function is defined
-    setTimeout(() => {
-      // Keep reference to the original function if it exists
-      const originalToggleLocation = window.toggleLocation || function(){};
-      
-      // Replace it with our enhanced version
-      window.toggleLocation = function(locationId) {
-        // Call the original function if it exists
-        if (typeof originalToggleLocation === 'function') {
-          originalToggleLocation(locationId);
-        }
-        
-        // Update the marker regardless
-        const location = locations.find(loc => loc.id === locationId);
-        if (location) {
-          location.found = !location.found;
-          updateMarker(locationId, location.found);
-        }
-      };
-    }, 1000); // Wait a second for other scripts to load
+  // Create map centered on Clemson
+  map = new google.maps.Map(document.getElementById("map"), {
+    zoom: 15,
+    center: clemsonCenter,
+    mapTypeId: "roadmap",
+    mapTypeControl: true,
+    streetViewControl: false,
+    fullscreenControl: true,
   });
   
-  // Log when the script is loaded
-  console.log("Map script loaded successfully!");
+  // Set up location tracking
+  setupLocationTracking();
+  
+  // Set up hunt locations (these would be your actual scavenger hunt locations)
+  setupHuntLocations();
+  
+  // Update status
+  document.getElementById('map-status').textContent = 'Map loaded! Enable location to start the hunt.';
+}
+
+// Set up location tracking
+function setupLocationTracking() {
+  if (navigator.geolocation) {
+    // Options for the location tracking
+    const options = {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 10000
+    };
+    
+    // Start watching position
+    watchId = navigator.geolocation.watchPosition(
+      updateUserPosition,
+      handleLocationError,
+      options
+    );
+    
+    // Also get position immediately
+    navigator.geolocation.getCurrentPosition(
+      updateUserPosition,
+      handleLocationError,
+      options
+    );
+  } else {
+    document.getElementById('map-status').textContent = 'Geolocation is not supported by this browser.';
+  }
+}
+
+// Update user position on map
+function updateUserPosition(position) {
+  const userPosition = {
+    lat: position.coords.latitude,
+    lng: position.coords.longitude
+  };
+  
+  // Create marker if it doesn't exist
+  if (!userMarker) {
+    userMarker = new google.maps.Marker({
+      position: userPosition,
+      map: map,
+      icon: {
+        url: 'images/user-location.png', // Replace with your custom marker icon
+        scaledSize: new google.maps.Size(32, 32)
+      },
+      title: "Your Location"
+    });
+  } else {
+    // Update existing marker
+    userMarker.setPosition(userPosition);
+  }
+  
+  // Center map on user
+  map.setCenter(userPosition);
+  
+  // Check if user is near any hunt locations
+  checkProximityToLocations(userPosition);
+  
+  // Update status
+  document.getElementById('map-status').textContent = 'Location tracking active. Find the hidden locations!';
+}
+
+// Handle location errors
+function handleLocationError(error) {
+  let errorMessage;
+  
+  switch(error.code) {
+    case error.PERMISSION_DENIED:
+      errorMessage = "Location access denied. Please enable location services.";
+      break;
+    case error.POSITION_UNAVAILABLE:
+      errorMessage = "Location information is unavailable.";
+      break;
+    case error.TIMEOUT:
+      errorMessage = "Location request timed out.";
+      break;
+    case error.UNKNOWN_ERROR:
+      errorMessage = "An unknown error occurred.";
+      break;
+  }
+  
+  document.getElementById('map-status').textContent = errorMessage;
+}
+
+// Set up hunt locations
+function setupHuntLocations() {
+  // Define hunt locations (coordinates for Clemson landmarks)
+  const locations = [
+    { name: "Memorial Stadium", lat: 34.6785, lng: -82.8419 },
+    { name: "Tillman Hall", lat: 34.6795, lng: -82.8369 },
+    { name: "Cooper Library", lat: 34.6761, lng: -82.8357 },
+    { name: "Bowman Field", lat: 34.6776, lng: -82.8377 },
+    { name: "Hendrix Student Center", lat: 34.6758, lng: -82.8339 }
+  ];
+  
+  // Create hidden markers for each location (not visible to the user)
+  huntLocations = locations.map((location, index) => {
+    return {
+      position: { lat: location.lat, lng: location.lng },
+      name: location.name,
+      index: index,
+      found: false,
+      radius: 50 // Distance in meters to trigger "found" state
+    };
+  });
+}
+
+// Check if user is near any hunt locations
+function checkProximityToLocations(userPosition) {
+  huntLocations.forEach(location => {
+    if (!location.found) {
+      const distance = calculateDistance(
+        userPosition.lat, userPosition.lng,
+        location.position.lat, location.position.lng
+      );
+      
+      // Convert distance to meters (approximate)
+      const distanceMeters = distance * 1000;
+      
+      // Check if user is within the designated radius
+      if (distanceMeters <= location.radius) {
+        // Mark location as found
+        location.found = true;
+        
+        // Call the progress update function (from progress.js)
+        if (typeof updateProgress === 'function') {
+          updateProgress(location.index + 1);
+        }
+        
+        // Show a notification
+        alert(`You found ${location.name}!`);
+        
+        // Add marker for found location
+        const marker = new google.maps.Marker({
+          position: location.position,
+          map: map,
+          icon: {
+            url: 'images/location-found.png', // Replace with your custom marker
+            scaledSize: new google.maps.Size(32, 32)
+          },
+          title: location.name
+        });
+      }
+    }
+  });
+}
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2); 
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+  const distance = R * c; // Distance in km
+  return distance;
+}
+
+// Convert degrees to radians
+function deg2rad(deg) {
+  return deg * (Math.PI/180);
+}
+
+// Clean up when the page is unloaded
+window.addEventListener('beforeunload', function() {
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+  }
+});
