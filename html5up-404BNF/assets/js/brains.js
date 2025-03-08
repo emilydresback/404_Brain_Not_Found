@@ -59,38 +59,30 @@ async function getRiddlesForPOIs(pois) {
 
 async function generateRiddlesForLocation() {
     if (!navigator.geolocation) {
-        document.getElementById("output").innerText = "Geolocation is not supported by your browser.";
-        return;
+        throw new Error("Geolocation is not supported by your browser.");
     }
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
+    return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
 
-        document.getElementById("output").innerText = "Fetching points of interest...";
+            const pois = await getPointsOfInterest(lat, lng);
+            if (pois.length === 0) {
+                reject(new Error("No points of interest found."));
+                return;
+            }
 
-        const pois = await getPointsOfInterest(lat, lng);
-        if (pois.length === 0) {
-            document.getElementById("output").innerText = "No points of interest found.";
-            return;
-        }
+            const riddles = await getRiddlesForPOIs(pois);
 
-        document.getElementById("output").innerText = "Generating riddles...";
-        const riddles = await getRiddlesForPOIs(pois);
+            // Store results in a map
+            riddleMap.clear();
+            riddles.forEach(poi => riddleMap.set(poi.name, poi.riddle));
 
-        // Store results in a map
-        riddleMap.clear();
-        riddles.forEach(poi => riddleMap.set(poi.name, poi.riddle));
-
-        // Display the riddles
-        let outputHTML = "<h2>Generated Riddles:</h2><ul>";
-        riddles.forEach(poi => {
-            outputHTML += `<li><strong>${poi.name}</strong>: ${poi.riddle}</li>`;
+            resolve(riddleMap);
+        }, () => {
+            reject(new Error("Unable to retrieve location."));
         });
-        outputHTML += "</ul>";
-        document.getElementById("output").innerHTML = outputHTML;
-    }, () => {
-        document.getElementById("output").innerText = "Unable to retrieve location.";
     });
 }
 
