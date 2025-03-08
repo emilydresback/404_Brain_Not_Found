@@ -1,143 +1,96 @@
+// maps.js - Shows a map centered on user's location using Leaflet and OpenStreetMap
 
-// Fetch API key from server
-/*fetch('/maps-api-key')
-  .then(response => response.json())
-  .then(data => {
-    const script = document.createElement('script');
-    const apiKey = env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
-  })
-  .catch(error => {
-    console.error('Error loading API key:', error);
-    document.getElementById('map-status').textContent = 'Error loading map. Please try again later.';
-  });*/
-
-const script = document.createElement('script');
-let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
-script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-script.async = true;
-script.defer = true;
-document.body.appendChild(script);
-  
 // Global variables
 let map;
 let userMarker;
-let huntLocations = [];
-let watchId;
 
-// Initialize the map (this function will be called by the Google Maps API once loaded)
 function initMap() {
-  // Default center on Clemson University
-  const clemsonCenter = { lat: 34.6765, lng: -82.8364 };
+  console.log("Initializing map with Leaflet...");
   
-  // Create map centered on Clemson
-  map = new google.maps.Map(document.getElementById("map"), {
-    zoom: 15,
-    center: clemsonCenter,
-    mapTypeId: "roadmap",
-    mapTypeControl: true,
-    streetViewControl: false,
-    fullscreenControl: true,
-  });
+  // If map already exists, remove it and create a fresh one
+  if (map) {
+    map.remove();
+  }
   
-  // Set up location tracking
-  setupLocationTracking();
+  // Create map with default center (Clemson University) in case geolocation fails
+  map = L.map('map').setView([34.6765, -82.8364], 15);
   
-  // Set up hunt locations (these would be your actual scavenger hunt locations)
-  setupHuntLocations();
+  // Add the OpenStreetMap tiles - no API key needed!
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
   
   // Update status
-  document.getElementById('map-status').textContent = 'Map loaded! Enable location to start the hunt.';
-}
-
-// Set up location tracking
-function setupLocationTracking() {
+  const statusElement = document.getElementById('map-status');
+  if (statusElement) {
+    statusElement.textContent = 'Getting your location...';
+  }
+  
+  // Try to get user location
   if (navigator.geolocation) {
-    // Options for the location tracking
-    const options = {
-      enableHighAccuracy: true,
-      maximumAge: 0,
-      timeout: 10000
-    };
-    
-    // Start watching position
-    watchId = navigator.geolocation.watchPosition(
-      updateUserPosition,
-      handleLocationError,
-      options
-    );
-    
-    // Also get position immediately
     navigator.geolocation.getCurrentPosition(
-      updateUserPosition,
-      handleLocationError,
-      options
+      (position) => {
+        const userLocation = [position.coords.latitude, position.coords.longitude];
+        
+        // Center map on user's location
+        map.setView(userLocation, 15);
+        
+        // Add a marker for user's location
+        if (userMarker) {
+          userMarker.remove();
+        }
+        
+        userMarker = L.circleMarker(userLocation, {
+          radius: 8,
+          fillColor: "#4285F4",
+          color: "#FFFFFF",
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map);
+        
+        // Store the user position globally
+        window.currentUserPosition = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        };
+        
+        // Update status message
+        if (statusElement) {
+          statusElement.textContent = 'Map updated with your current location!';
+        }
+        
+        // Set up hunt locations
+        setupHuntLocations(map);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        if (statusElement) {
+          statusElement.textContent = 'Error getting your location. Using default location.';
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
     );
   } else {
-    document.getElementById('map-status').textContent = 'Geolocation is not supported by this browser.';
-  }
-}
-
-// Update user position on map
-function updateUserPosition(position) {
-  const userPosition = {
-    lat: position.coords.latitude,
-    lng: position.coords.longitude
-  };
-  
-  // Create marker if it doesn't exist
-  if (!userMarker) {
-    userMarker = new google.maps.Marker({
-      position: userPosition,
-      map: map,
-      icon: {
-        url: 'images/user-location.png', // Replace with your custom marker icon
-        scaledSize: new google.maps.Size(32, 32)
-      },
-      title: "Your Location"
-    });
-  } else {
-    // Update existing marker
-    userMarker.setPosition(userPosition);
+    // Browser doesn't support geolocation
+    console.error("Geolocation is not supported by this browser");
+    if (statusElement) {
+      statusElement.textContent = 'Geolocation is not supported by your browser.';
+    }
   }
   
-  // Center map on user
-  map.setCenter(userPosition);
+  // Store map globally
+  window.map = map;
   
-  // Check if user is near any hunt locations
-  checkProximityToLocations(userPosition);
-  
-  // Update status
-  document.getElementById('map-status').textContent = 'Location tracking active. Find the hidden locations!';
-}
-
-// Handle location errors
-function handleLocationError(error) {
-  let errorMessage;
-  
-  switch(error.code) {
-    case error.PERMISSION_DENIED:
-      errorMessage = "Location access denied. Please enable location services.";
-      break;
-    case error.POSITION_UNAVAILABLE:
-      errorMessage = "Location information is unavailable.";
-      break;
-    case error.TIMEOUT:
-      errorMessage = "Location request timed out.";
-      break;
-    case error.UNKNOWN_ERROR:
-      errorMessage = "An unknown error occurred.";
-      break;
-  }
-  
-  document.getElementById('map-status').textContent = errorMessage;
+  return map;
 }
 
 // Set up hunt locations
-function setupHuntLocations() {
+function setupHuntLocations(map) {
   // Define hunt locations (coordinates for Clemson landmarks)
   const locations = [
     { name: "Memorial Stadium", lat: 34.6785, lng: -82.8419 },
@@ -147,56 +100,119 @@ function setupHuntLocations() {
     { name: "Hendrix Student Center", lat: 34.6758, lng: -82.8339 }
   ];
   
-  // Create hidden markers for each location (not visible to the user)
-  huntLocations = locations.map((location, index) => {
+  // Clear existing hunt locations from previous setup
+  if (window.huntLocations) {
+    // Remove any markers from these locations if they exist
+    window.huntLocations.forEach(location => {
+      if (location.marker) {
+        location.marker.remove();
+      }
+    });
+  }
+  
+  // Create hunt location objects and add them to the global array
+  window.huntLocations = locations.map((location, index) => {
+    // Check if the location was previously found
+    const wasFound = window.huntLocations && 
+                     window.huntLocations[index] && 
+                     window.huntLocations[index].found;
+    
+    // If this location was already found, add a marker for it
+    let marker = null;
+    if (wasFound) {
+      marker = L.marker([location.lat, location.lng], {
+        title: location.name
+      }).addTo(map);
+    }
+    
     return {
       position: { lat: location.lat, lng: location.lng },
       name: location.name,
       index: index,
-      found: false,
-      radius: 50 // Distance in meters to trigger "found" state
+      found: wasFound || false,
+      radius: 50, // Distance in meters to trigger "found" state
+      marker: marker
     };
   });
 }
 
-// Check if user is near any hunt locations
-function checkProximityToLocations(userPosition) {
-  huntLocations.forEach(location => {
-    if (!location.found) {
-      const distance = calculateDistance(
-        userPosition.lat, userPosition.lng,
-        location.position.lat, location.position.lng
-      );
-      
-      // Convert distance to meters (approximate)
-      const distanceMeters = distance * 1000;
-      
-      // Check if user is within the designated radius
-      if (distanceMeters <= location.radius) {
-        // Mark location as found
-        location.found = true;
+// Verify current location and regenerate map
+function verifyCurrentLocation() {
+  console.log("Verifying location and regenerating map...");
+  
+  // First, regenerate the map to get fresh location
+  initMap();
+  
+  // Then check for nearby locations
+  setTimeout(() => {
+    if (!window.currentUserPosition) {
+      alert("Unable to determine your location. Please enable location services.");
+      return;
+    }
+    
+    if (!window.huntLocations) {
+      alert("Hunt locations are not set up properly.");
+      return;
+    }
+    
+    let foundLocation = null;
+    let closestDistance = Infinity;
+    let closestLocation = null;
+    
+    // Check if user is near any hunt location
+    for (const location of window.huntLocations) {
+      if (!location.found) {
+        const distance = calculateDistance(
+          window.currentUserPosition.lat, 
+          window.currentUserPosition.lng,
+          location.position.lat, 
+          location.position.lng
+        );
         
-        // Call the progress update function (from progress.js)
-        if (typeof updateProgress === 'function') {
-          updateProgress(location.index + 1);
+        // Convert distance to meters (approximate)
+        const distanceMeters = distance * 1000;
+        
+        // Keep track of closest location
+        if (distanceMeters < closestDistance) {
+          closestDistance = distanceMeters;
+          closestLocation = location;
         }
         
-        // Show a notification
-        alert(`You found ${location.name}!`);
-        
-        // Add marker for found location
-        const marker = new google.maps.Marker({
-          position: location.position,
-          map: map,
-          icon: {
-            url: 'images/location-found.png', // Replace with your custom marker
-            scaledSize: new google.maps.Size(32, 32)
-          },
-          title: location.name
-        });
+        // Check if user is within the designated radius
+        if (distanceMeters <= location.radius) {
+          foundLocation = location;
+          break;
+        }
       }
     }
-  });
+    
+    if (foundLocation) {
+      // Mark location as found
+      foundLocation.found = true;
+      
+      // Add marker for found location
+      foundLocation.marker = L.marker([foundLocation.position.lat, foundLocation.position.lng], {
+        title: foundLocation.name
+      }).addTo(map);
+      
+      // Update progress if progress.js is loaded
+      if (typeof updateProgress === 'function') {
+        updateProgress(foundLocation.index + 1);
+      }
+      
+      // Show success message
+      alert(`You found ${foundLocation.name}!`);
+    } else if (closestLocation) {
+      // Give a hint about the closest location
+      const distanceMsg = closestDistance < 1 ? 
+        `${Math.round(closestDistance * 1000)} meters` : 
+        `${closestDistance.toFixed(2)} kilometers`;
+      
+      alert(`You're not at a landmark yet. The closest location is ${closestLocation.name}, about ${distanceMsg} away.`);
+    } else {
+      alert("You're not near any hunt locations. Keep exploring!");
+    }
+  }, 1000); // Small delay to ensure location is updated
 }
 
 // Calculate distance between two coordinates using Haversine formula
@@ -218,9 +234,14 @@ function deg2rad(deg) {
   return deg * (Math.PI/180);
 }
 
-// Clean up when the page is unloaded
-window.addEventListener('beforeunload', function() {
-  if (watchId) {
-    navigator.geolocation.clearWatch(watchId);
+// Initialize everything when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize map
+  initMap();
+  
+  // Set up verification button
+  const verifyButton = document.getElementById('verify-location-btn');
+  if (verifyButton) {
+    verifyButton.addEventListener('click', verifyCurrentLocation);
   }
 });

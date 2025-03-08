@@ -1,59 +1,47 @@
 <!DOCTYPE HTML>
 <html>
 	<head>
-
-		<body class="is-preload">
-
-			<!-- Progress Bar with Numbered Nodes -->
-			<div id="progress-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 40px; background-color: transparent; z-index: 999999; padding-top: 15px; cursor: pointer;">
-				<!-- Progress Bar Background -->
-				<div id="progress-background" style="position: absolute; top: 20px; left: 0; width: 100%; height: 6px; background-color: #f1f1f1;"></div>
-				
-				<!-- Colored Progress Bar -->
-				<div id="progress-fill" style="position: absolute; top: 20px; left: 0; width: 0%; height: 6px; background-color: #F56600; transition: width 0.5s ease-in-out;"></div>
-				
-				<!-- Node 1 -->
-				<div class="progress-node" style="position: absolute; top: 13px; left: 10%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">1</div>
-				
-				<!-- Node 2 -->
-				<div class="progress-node" style="position: absolute; top: 13px; left: 30%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">2</div>
-				
-				<!-- Node 3 -->
-				<div class="progress-node" style="position: absolute; top: 13px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">3</div>
-				
-				<!-- Node 4 -->
-				<div class="progress-node" style="position: absolute; top: 13px; left: 70%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">4</div>
-				
-				<!-- Node 5 -->
-				<div class="progress-node" style="position: absolute; top: 13px; left: 90%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">5</div>
-			  </div>
-			
-			<!-- Rest of the site content -->
 		<title>DeathValleyDash - Clemson Scavenger Hunt</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		
+		<!-- Add Leaflet CSS -->
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 	</head>
 	<body class="is-preload">
-		<!-- Progress Bar - As the first element in body -->
-		<div class="progress-container">
-			<div class="progress-bar" id="myProgressBar"></div>
+		<!-- Progress Bar with Numbered Nodes -->
+		<div id="progress-container" style="position: fixed; top: 0; left: 0; width: 100%; height: 40px; background-color: transparent; z-index: 999999; padding-top: 15px; cursor: pointer;">
+			<!-- Progress Bar Background -->
+			<div id="progress-background" style="position: absolute; top: 20px; left: 0; width: 100%; height: 6px; background-color: #f1f1f1;"></div>
+			
+			<!-- Colored Progress Bar -->
+			<div id="progress-fill" style="position: absolute; top: 20px; left: 0; width: 0%; height: 6px; background-color: #F56600; transition: width 0.5s ease-in-out;"></div>
+			
+			<!-- Node 1 -->
+			<div class="progress-node" style="position: absolute; top: 13px; left: 10%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">1</div>
+			
+			<!-- Node 2 -->
+			<div class="progress-node" style="position: absolute; top: 13px; left: 30%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">2</div>
+			
+			<!-- Node 3 -->
+			<div class="progress-node" style="position: absolute; top: 13px; left: 50%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">3</div>
+			
+			<!-- Node 4 -->
+			<div class="progress-node" style="position: absolute; top: 13px; left: 70%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">4</div>
+			
+			<!-- Node 5 -->
+			<div class="progress-node" style="position: absolute; top: 13px; left: 90%; transform: translateX(-50%); width: 20px; height: 20px; background-color: #f1f1f1; border: 2px solid #ccc; border-radius: 50%; text-align: center; line-height: 16px; font-weight: bold; font-size: 12px;">5</div>
 		</div>
 
 		<!-- Header -->
 		<header id="header">
 			<div class="inner">
 				<a href="#" class="image avatar"><img src="images/TigerRiddlerPFP.jpg" alt="" /></a>
-				<h1>Death Valley Dash's <strong>AI Riddle Master</strong></h1>				<!-- Chatbot Container -->
-				<div id="chatbot-container">
-					<ul class="chatbox">
-						<!-- Messages will be added here by JavaScript -->
-					</ul>
-					<div id="chat-input-area">
-						<button id="hint-button" class="button primary" style="width: 100%; margin: 0;">Get Hint</button>
-					</div>
-				</div>
+				<h1>Death Valley Dash's <strong>AI Riddle Master</strong></h1>				
+				
+				<!-- Chatbot Container -->
+				<div id="chatbot-root"></div>
 			</div>
 		</header>
 
@@ -62,7 +50,7 @@
 			<!-- Title -->
 			<h1 style="margin-bottom: 15px; font-weight: bold; font-size: 2em; color: #F56600;">Death Valley Dash</h1>
 
-			<!-- Google Maps Container -->
+			<!-- Map Container -->
 			<div id="map-container">
 				<!-- The map will be rendered in this div -->
 				<div id="map" style="width: 100%; height: 400px; border-radius: 8px;"></div>
@@ -72,38 +60,16 @@
 				
 				<!-- Location Verification Button -->
 				<div id="verification-container" style="margin-top: 10px; text-align: center;">
-				<button id="verify-location-btn" class="button primary" style="background-color: #F56600; padding: 10px 20px; font-weight: bold; color: white;">
-					Verify Current Location
-				</button>
+					<button id="verify-location-btn" class="button primary" style="background-color: #F56600; padding: 10px 20px; font-weight: bold; color: white;">
+						Verify Current Location
+					</button>
 				</div>
 			</div>
-		</head>
-		<body>
-			<div id="map"></div>
 
-			<!-- 
-			The `defer` attribute causes the script to execute after the full HTML
-			document has been parsed. For non-blocking uses, avoiding race conditions,
-			and consistent behavior across browsers, consider loading using Promises. See
-			https://developers.google.com/maps/documentation/javascript/load-maps-js-api
-			for more information.
-			-->
-			<script
-			src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&language=en&region=JP"
-			defer
-			></script>
-
-
-			<!-- Location Verification Button -->
-			<div id="verification-container" style="margin-top: 10px; text-align: center;">
-				<button id="verify-location-btn" class="button primary" style="background-color: #F56600; padding: 10px 20px; font-weight: bold;">
-				  Verify Current Location
-				</button>
-			  </div>
 			<!-- One -->
 			<section id="one">
 				<header class="major">
-				<h2>DeathValleyDash Scavenger Hunt</h2>
+					<h2>DeathValleyDash Scavenger Hunt</h2>
 				</header>
 				<p>Explore Clemson's campus in this interactive scavenger hunt! Track your location and discover hidden landmarks around campus. Follow the riddles from our AI guide and use your phone's GPS to find each location.</p>
 				<ul class="actions">
@@ -204,6 +170,9 @@
 		<script src="assets/js/util.js"></script>
 		<script src="assets/js/main.js"></script>
 
+		<!-- Add Leaflet JavaScript -->
+		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
 		<!--DeathValleyDash assets-->
 		<script src="assets/js/script.js"></script>
 		<script src="assets/js/map.js"></script>
@@ -211,10 +180,7 @@
 		<script src="assets/js/progress.js"></script>
 		<script src="assets/js/brains.js"></script>
 		
-		<!-- Load Google Maps API 
-		<script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"></script>
-		</script>-->
-
-
-</body>
+		<!-- Chatbot bundle if using React -->
+		<script src="assets/js/dist/chatbot-bundle.js"></script>
+	</body>
 </html>
