@@ -4,7 +4,7 @@ require('dotenv').config();
 let riddleMap = new Map(); // Global storage for POIs and their riddles
 
 async function getPointsOfInterest(lat, lng) {
-    let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
     const radius = 1609; // 1 mile in meters
     const type = 'point_of_interest';
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
@@ -29,7 +29,7 @@ async function getPointsOfInterest(lat, lng) {
 }
 
 async function getRiddlesForPOIs(pois) {
-    let apiKey = OpenAIAPIPhrase();
+    const apiKey = process.env.OPENAI_API_KEY; // TODO: Replace with API Key
     const prompt = pois.map(poi => `Create a riddle about a place called "${poi.name}", which is located at "${poi.address}".`).join("\n");
 
     const body = {
