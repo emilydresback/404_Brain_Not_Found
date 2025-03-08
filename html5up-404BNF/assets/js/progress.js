@@ -77,11 +77,17 @@ function updateProgressBar(step) {
 
 // Function to advance to the next step
 function advanceProgress() {
+    console.log("Current step before advancing:", window.DeathValleyDash.currentStep);
     const nextStep = window.DeathValleyDash.currentStep + 1;
+    console.log("Attempting to advance to step:", nextStep);
+    
     if (nextStep <= window.DeathValleyDash.totalSteps) {
         updateProgressBar(nextStep);
+        console.log("Successfully advanced to step:", nextStep);
         return true;
     }
+    
+    console.log("Cannot advance beyond total steps:", window.DeathValleyDash.totalSteps);
     return false;
 }
 
@@ -103,6 +109,7 @@ function getCurrentRiddleLocation() {
 function showCompletionMessage() {
     // Show congratulations popup
     showCongratulationsPopup();
+    console.log("Hunt completed! Showing congratulations popup.");
 }
 
 // Function to show congratulations popup
@@ -238,7 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // When solve button is clicked, advance to the next step
         newButton.addEventListener('click', function() {
+            console.log("Solve button clicked");
+            
+            // First advance the progress bar
             const advanced = advanceProgress();
+            console.log("Progress advanced:", advanced);
             
             if (advanced) {
                 // Get the location name for the current riddle
@@ -249,7 +260,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // If we have a riddle chatbot, advance to the next riddle
                 if (typeof window.advanceToNextRiddle === 'function') {
-                    window.advanceToNextRiddle();
+                    console.log("Calling advanceToNextRiddle");
+                    try {
+                        window.advanceToNextRiddle();
+                    } catch (error) {
+                        console.error("Error in advanceToNextRiddle:", error);
+                    }
+                } else {
+                    console.warn("advanceToNextRiddle function not available");
                 }
                 
                 // Show success message

@@ -189,17 +189,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!huntStarted) {
             // Check if riddles have been loaded
             if (!OpenAIRiddles || OpenAIRiddles.length === 0) {
+                console.log("No riddles loaded yet, fetching or using fallback...");
                 // Try to fetch riddles if they haven't been loaded yet
-                runPythonCode().then(() => {
-                    startHunt();
-                }).catch(error => {
-                    console.error("Error loading riddles:", error);
-                    // Use fallback riddles if there's an error
-                    OpenAIRiddles = getFallbackRiddles();
-                    window.riddles = OpenAIRiddles;
-                    startHunt();
-                });
+                runPythonCode()
+                    .then((riddles) => {
+                        console.log("Riddles loaded successfully:", riddles);
+                        OpenAIRiddles = riddles;
+                        window.riddles = riddles;
+                        startHunt();
+                    })
+                    .catch(error => {
+                        console.error("Error loading riddles:", error);
+                        // Use fallback riddles if there's an error
+                        OpenAIRiddles = getRandomRiddles(fallbackRiddleLibrary, 5);
+                        window.riddles = OpenAIRiddles;
+                        console.log("Using fallback riddles:", OpenAIRiddles);
+                        startHunt();
+                    });
             } else {
+                console.log("Riddles already loaded, starting hunt...");
                 startHunt();
             }
         }
@@ -207,6 +215,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to start the hunt once riddles are loaded
     function startHunt() {
+        // Log riddles to confirm what we're using
+        console.log("Starting hunt with riddles:", OpenAIRiddles);
+        
+        // Check and use fallback if necessary one more time
+        if (!OpenAIRiddles || OpenAIRiddles.length === 0) {
+            console.warn("No riddles available at start, using fallback...");
+            OpenAIRiddles = getRandomRiddles(fallbackRiddleLibrary, 5);
+            window.riddles = OpenAIRiddles;
+        }
+        
         // Start the hunt
         huntStarted = true;
         currentRiddleIndex = 0;
@@ -227,8 +245,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Display first riddle
         if (OpenAIRiddles && OpenAIRiddles.length > 0) {
             riddleText.textContent = OpenAIRiddles[currentRiddleIndex].text;
+            console.log("Displaying first riddle:", OpenAIRiddles[currentRiddleIndex].text);
         } else {
-            console.error("No riddles available");
+            console.error("No riddles available even after fallback check");
             riddleText.textContent = "Error: No riddles available. Please refresh the page.";
         }
         
@@ -252,22 +271,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to advance to next riddle (called by the progress system)
     window.advanceToNextRiddle = function() {
-        if (huntStarted && currentRiddleIndex < riddles.length - 1) {
+        console.log("advanceToNextRiddle called, current index:", currentRiddleIndex);
+        if (huntStarted && currentRiddleIndex < OpenAIRiddles.length - 1) {
             // Get location of the solved riddle
-            const solvedLocation = riddles[currentRiddleIndex].location;
+            const solvedLocation = OpenAIRiddles[currentRiddleIndex].location;
             
             // Advance to next riddle
             currentRiddleIndex++;
-            riddleText.textContent = riddles[currentRiddleIndex].text;
+            console.log("Advanced to riddle index:", currentRiddleIndex);
+            
+            if (OpenAIRiddles && OpenAIRiddles.length > currentRiddleIndex) {
+                riddleText.textContent = OpenAIRiddles[currentRiddleIndex].text;
+            } else {
+                console.error("No next riddle available");
+                riddleText.textContent = "Error: No more riddles available.";
+            }
             
             // Show success message with the location
             addSystemMessage(`Correct! You found ${solvedLocation}! Here's your next riddle.`);
             
             // Make riddles available to the progress system
-            window.riddles = riddles;
-        } else if (huntStarted && currentRiddleIndex === riddles.length - 1) {
+            window.riddles = OpenAIRiddles;
+        } else if (huntStarted && currentRiddleIndex === OpenAIRiddles.length - 1) {
             // Get location of the final solved riddle
-            const solvedLocation = riddles[currentRiddleIndex].location;
+            const solvedLocation = OpenAIRiddles[currentRiddleIndex].location;
             
             // Hunt completed
             addSystemMessage(`Correct! You found ${solvedLocation}! Congratulations! You've completed the Death Valley Dash! You've successfully found all the locations on campus. Claim your prize at the Student Union.`);
@@ -278,7 +305,9 @@ document.addEventListener('DOMContentLoaded', function() {
             startButton.disabled = true;
             
             // Make riddles available to the progress system
-            window.riddles = riddles;
+            window.riddles = OpenAIRiddles;
+        } else {
+            console.error("Cannot advance riddle - hunt not started or no more riddles");
         }
     };
     
