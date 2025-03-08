@@ -139,7 +139,7 @@ async function getRiddlesForPOIs(pois) {
     const prompt = pois.map(poi => `Create a riddle about a place called "${poi.name}", which is located at "${poi.address}".`).join("\n");
 
     const body = {
-        model: "gpt-4-turbo",
+        model: "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7
     };
@@ -157,7 +157,8 @@ async function getRiddlesForPOIs(pois) {
         const data = await response.json();
         return pois.map((poi, index) => ({
             ...poi,
-            riddle: data.choices[0].message.content.split("\n")[index] || "No riddle available."
+            riddle: data.choices[0].message.content.split("\n")[index] || "No riddle available.",
+            isFound: false
         }));
     } catch (error) {
         console.error("Error generating riddles:", error);
