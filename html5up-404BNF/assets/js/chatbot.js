@@ -29,6 +29,9 @@ async function runPythonCode() {
         
     // Parse the JSON response
     const OpenAIRiddles = await response.json();
+    document.addEventListener('DOMContentLoaded', function() {
+        runPythonCode();
+    })
 }
 
 const allRiddles = [
