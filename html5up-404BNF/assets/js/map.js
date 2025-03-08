@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Key locations on campus
 const locations = [
     { id: "location1", name: "Tillman Hall", lat: 34.6796, lng: -82.8371, found: false },
@@ -18,6 +17,15 @@ const locations = [
   
   // Initialize the map
   function initMap() {
+    // Handle cases where Google Maps is not loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+      document.getElementById('map').innerHTML = 
+        '<div style="text-align:center; padding:20px; background:#f8f8f8; border-radius:8px;">' +
+        '<p>Google Maps could not be loaded. Please check your API key and internet connection.</p>' +
+        '</div>';
+      return;
+    }
+  
     // Create the map
     map = new google.maps.Map(document.getElementById("map"), {
       center: clemsonCenter,
@@ -167,61 +175,38 @@ const locations = [
     }
   }
   
+  // Handle map loading errors
+  function handleMapError() {
+    console.error("Google Maps failed to load");
+    document.getElementById('map').innerHTML = 
+      '<div style="text-align:center; padding:20px; background:#f8f8f8; border-radius:8px;">' +
+      '<p>Google Maps could not be loaded. Please check your API key and internet connection.</p>' +
+      '</div>';
+  }
+  
   // Override the toggleLocation function to also update markers
   document.addEventListener('DOMContentLoaded', function() {
     // Wait until the original toggleLocation function is defined
-    const originalToggleLocation = window.toggleLocation;
-    
-    // Replace it with our enhanced version
-    window.toggleLocation = function(locationId) {
-      // Call the original function
-      originalToggleLocation(locationId);
+    setTimeout(() => {
+      // Keep reference to the original function if it exists
+      const originalToggleLocation = window.toggleLocation || function(){};
       
-      // Update the marker
-      const location = huntLocations.find(loc => loc.id === locationId);
-      if (location) {
-        updateMarker(locationId, location.found);
-      }
-    };
-  });
-=======
-require([
-    "esri/Map",
-    "esri/views/MapView",
-    "esri/Graphic",
-    "esri/symbols/SimpleMarkerSymbol" // or "esri/symbols/PictureMarkerSymbol"
-], function(Map, MapView, Graphic, SimpleMarkerSymbol) {
-    const map = new Map({
-        basemap: "topo-vector"
-    });
-
-    const view = new MapView({
-        container: "mapDiv",
-        map: map,
-        center: [-118.244, 34.052],
-        zoom: 12
-    });
-
-    const point = {
-        type: "point",
-        longitude: -118.244,
-        latitude: 34.052
-    };
-
-    const simpleMarkerSymbol = {
-        type: "simple-marker",
-        color: [226, 119, 40],
-        outline: {
-            color: [255, 255, 255],
-            width: 1
+      // Replace it with our enhanced version
+      window.toggleLocation = function(locationId) {
+        // Call the original function if it exists
+        if (typeof originalToggleLocation === 'function') {
+          originalToggleLocation(locationId);
         }
-    };
-
-    const graphic = new Graphic({
-        geometry: point,
-        symbol: simpleMarkerSymbol
-    });
-
-    view.graphics.add(graphic);
-});
->>>>>>> 98e77907b1a0f9423811d8b2c854b3ddfdc8e794
+        
+        // Update the marker regardless
+        const location = locations.find(loc => loc.id === locationId);
+        if (location) {
+          location.found = !location.found;
+          updateMarker(locationId, location.found);
+        }
+      };
+    }, 1000); // Wait a second for other scripts to load
+  });
+  
+  // Log when the script is loaded
+  console.log("Map script loaded successfully!");

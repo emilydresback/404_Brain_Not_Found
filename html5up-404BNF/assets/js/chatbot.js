@@ -1,4 +1,4 @@
-// chatbot.js - Direct OpenAI API version
+// chatbot.js - AI-driven chat implementation for DeathValleyDash
 
 // Get DOM elements
 const hintButton = document.getElementById('hint-button');
@@ -9,8 +9,8 @@ let waitingForResponse = false;
 // OpenAI API endpoint
 const API_URL = "https://api.openai.com/v1/chat/completions";
 
-// API key 
-const API_KEY = "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";
+// API key - ADD YOUR KEY WHEN TESTING LOCALLY, REMOVE BEFORE PUSHING TO GITHUB
+const API_KEY = ""; // Your OpenAI API key goes here (for local testing only)
 
 // Conversation history for context
 let conversationHistory = [
@@ -50,6 +50,11 @@ async function generateResponse(userAction) {
         // Log what we're sending
         console.log("Sending request to OpenAI API...");
         
+        // Check if API key is set
+        if (!API_KEY) {
+            throw new Error("API key not configured. Please add your OpenAI API key for testing.");
+        }
+        
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
@@ -73,7 +78,7 @@ async function generateResponse(userAction) {
         }
         
         const data = await response.json();
-        console.log("API Response received:", data);
+        console.log("API Response received");
         
         // Get the response text
         const aiMessage = data.choices[0].message.content;
@@ -97,7 +102,16 @@ async function generateResponse(userAction) {
         
     } catch (error) {
         console.error("Error details:", error);
-        loadingMessage.innerHTML = `<p>Sorry, I'm having trouble connecting to my AI services. Please try again or check console for details.</p>`;
+        
+        // Provide a useful fallback response
+        if (error.message.includes("API key")) {
+            loadingMessage.innerHTML = `<p>API key not configured. For a hackathon demo, use pre-defined responses or configure the key.</p>`;
+        } else {
+            loadingMessage.innerHTML = `<p>Sorry, I'm having trouble connecting to my AI services. Please try again or check console for details.</p>`;
+        }
+        
+        // For hackathon demo, you might want to use fallback responses here
+        // Example: loadingMessage.innerHTML = `<p>Here's a riddle about Tillman Hall...</p>`;
     } finally {
         waitingForResponse = false;
     }
