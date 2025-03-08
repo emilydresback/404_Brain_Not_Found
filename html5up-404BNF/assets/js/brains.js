@@ -27,7 +27,7 @@ async function getPointsOfInterest(lat, lng) {
 }
 
 async function getRiddlesForPOIs(pois) {
-    let apiKey = OpenaiAPIPhrase(); // TODO: Replace with API Key
+    //let apiKey = OpenaiAPIPhrase(); // TODO: Replace with API Key
     const prompt = pois.map(poi => `Create a riddle about a place called "${poi.name}", which is located at "${poi.address}".`).join("\n");
 
     const body = {
