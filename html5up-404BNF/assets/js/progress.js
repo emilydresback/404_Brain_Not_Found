@@ -1,6 +1,7 @@
 // Progress bar with nodes script
 (function() {
-    // Get the progress bar fill element
+    // Get the progress bar container and fill element
+    var progressContainer = document.getElementById('progress-container');
     var progressFill = document.getElementById('progress-fill');
     
     // Get all node elements
@@ -40,16 +41,27 @@
       }
     }
     
-    // Make the progress bar or any node clickable to advance progress (for testing)
-    document.addEventListener('click', function(event) {
-      // Only update if we haven't reached max
-      if (foundLocations < totalLocations) {
-        foundLocations++;
-        updateProgress(foundLocations);
-      }
-    });
+    // Make only the progress bar container clickable to advance progress
+    if (progressContainer) {
+      progressContainer.addEventListener('click', function(event) {
+        // Only update if we haven't reached max
+        if (foundLocations < totalLocations) {
+          foundLocations++;
+          updateProgress(foundLocations);
+        }
+      });
+      
+      console.log('Click handler added to progress bar container');
+    } else {
+      console.error('Progress container not found!');
+    }
     
     // Initialize
     console.log('Node-based progress bar initialized');
     updateProgress(0);
+    
+    // Add a visual cue that the bar is clickable
+    if (progressContainer) {
+      progressContainer.title = "Click to advance progress (for testing)";
+    }
   })();
