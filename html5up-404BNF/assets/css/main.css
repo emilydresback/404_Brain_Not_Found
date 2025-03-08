@@ -3259,7 +3259,6 @@ section .hunt-progress-container,
 
 
 
-
 #hint-button {
     line-height: 0.8 !important;
     padding-top: 8px !important;
@@ -3318,6 +3317,7 @@ section .hunt-progress-container,
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 40px;
 }
 
 #start-button:hover, #hint-button:hover {

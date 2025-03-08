@@ -90,10 +90,17 @@ document.addEventListener('DOMContentLoaded', function() {
             currentRiddleIndex = 0;
             huntStatus.textContent = "Hunt in progress";
             
-            // Update button display
+            // Update button display - keep same position
             startButton.style.display = 'none';
-            hintButton.style.display = 'block';
-            hintButton.style.width = '100%'; // Make hint button take full width
+            hintButton.style.display = 'flex'; // Use flex to maintain centering
+            hintButton.style.width = '80%'; // Make hint button take width
+            
+            // Make sure the button container keeps its height
+            const buttonContainer = startButton.parentElement;
+            if (buttonContainer) {
+                const currentHeight = buttonContainer.offsetHeight;
+                buttonContainer.style.minHeight = currentHeight + 'px';
+            }
             
             // Display first riddle
             riddleText.textContent = riddles[currentRiddleIndex].text;
