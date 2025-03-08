@@ -281,7 +281,8 @@ const allRiddles = [
     
     
     // Select 5 random riddles for this session
-    const riddles = getRandomRiddles(allRiddles, 5);
+    //const riddles = getRandomRiddles(allRiddles, 5);
+    const riddles = OpenAIRiddles;
     
     // Hunt state
     let huntStarted = false;
