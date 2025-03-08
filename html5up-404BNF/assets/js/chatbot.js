@@ -23,6 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Clemson campus scavenger hunt riddles
+async function runPythonCode() {
+    // Make a GET request to the Flask API on Replit
+    const response = await fetch('https://4b6335f6-f3c9-45c2-853a-e3f31ac3741d-00-10b8is8h8q5l.spock.replit.dev/run-code');
+        
+    // Parse the JSON response
+    const OpenAIRiddles = await response.json();
+}
+
 const allRiddles = [
     {
         text: "I roar with the crowd on Saturdays, my name suggests danger and doom. Find me where 80,000+ fans wear orange and make noise.",
