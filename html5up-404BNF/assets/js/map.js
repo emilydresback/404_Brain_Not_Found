@@ -16,7 +16,7 @@
   });*/
 
 const script = document.createElement('script');
-let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
+let apiKey = "AIzaSyCppCsNVKSyj-VmbrT30z05eymhyGs86LI"
 script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
 script.async = true;
 script.defer = true;
