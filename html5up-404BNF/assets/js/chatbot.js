@@ -106,7 +106,7 @@ async function generateResponse(userAction) {
 //Code to handle getting the initial locations and producing the riddles: Javascript Version
 
 async function getPointsOfInterest(lat, lng) {
-    const apiKey = 'MAPS_API_KEY'; // Replace with your API key
+    const apiKey = 'MAPS_API_KEY'; //TODO: Figure out how to add the key with environment var
     const radius = 1609; // 1 mile in meters
     const type = 'point_of_interest'; // General category for points of interest
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
@@ -135,7 +135,7 @@ async function getPointsOfInterest(lat, lng) {
 //Code to generate riddles
 
 async function getRiddlesForPOIs(pois) {
-    const apiKey = 'OPENAI_API_KEY'; // Replace with your OpenAI API key
+    const apiKey = 'OPENAI_API_KEY'; //TODO: Figure out how to add the key with environment var
     const prompt = pois.map(poi => `Create a riddle about a place called "${poi.name}", which is located at "${poi.address}".`).join("\n");
 
     const body = {

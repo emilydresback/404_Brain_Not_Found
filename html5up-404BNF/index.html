@@ -181,5 +181,17 @@
 			src=" ">
 		</script>
 
+		<!-- Run POI generator and Riddle generator on load -->
+		<script>
+		const pois = await getPointsOfInterest(40.7128, -74.0060); // NYC Coordinates
+    	if (pois.length === 0) {
+        	console.log("No points of interest found.");
+        	return;
+    	}
+    	const riddles = await getRiddlesForPOIs(pois);
+    	console.log(riddles);
+		</script>
+
+
 </body>
 </html>
