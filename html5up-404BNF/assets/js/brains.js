@@ -1,3 +1,5 @@
+import { GOOGLE_MAPS_API_KEY } from './config.js'; // Import the API key
+import { API_KEY } from './config.js'; // Import the API key
 
 let riddleMap = new Map(); // Global storage for POIs and their riddles
 
@@ -5,7 +7,7 @@ async function getPointsOfInterest(lat, lng) {
     let apiKey = MapAPIPhrase(); // TODO: Replace with API Key
     const radius = 1609; // 1 mile in meters
     const type = 'point_of_interest';
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${GOOGLE_MAPS_API_KEY}`;
 
     try {
         const response = await fetch(url);
@@ -41,7 +43,7 @@ async function getRiddlesForPOIs(pois) {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`
+                "Authorization": `Bearer ${API_KEY}`
             },
             body: JSON.stringify(body)
         });
