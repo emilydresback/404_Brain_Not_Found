@@ -183,21 +183,11 @@
 		<script src="assets/js/map.js"></script>
 		<script src="assets/js/chatbot.js"></script>
 		<script src="assets/js/progress.js"></script>
+		<script src="assets/js/brains.js"></script>
 		
 		<!-- Load Google Maps API -->
 		<script async defer
 			src=" ">
-		</script>
-
-		<!-- Run POI generator and Riddle generator on load -->
-		<script>
-		const pois = await getPointsOfInterest(40.7128, -74.0060); // NYC Coordinates
-    	if (pois.length === 0) {
-        	console.log("No points of interest found.");
-        	return;
-    	}
-    	const riddles = await getRiddlesForPOIs(pois);
-    	console.log(riddles);
 		</script>
 
 
