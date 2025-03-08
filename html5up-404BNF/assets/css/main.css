@@ -3279,39 +3279,26 @@ section .hunt-progress-container,
     color: #000000;
 }
 
-.user-message {
-    background-color: #F56600; /* Clemson orange */
-    color: white;
-    border-radius: 10px;
-    padding: 10px;
-    margin-bottom: 10px;
-    max-width: 90%;
-    margin-left: auto;
-}
 
 #chat-input-area {
-    display: flex;
+    display: block;
     padding: 10px;
     background-color: #f1f1f1;
 }
 
-#user-input {
-    flex-grow: 1;
-    border: none;
-    padding: 8px;
-    border-radius: 5px;
-    margin-right: 5px;
+#hint-button {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 6px 15px; /* Reduced padding from 10px to 6px */
+    height: auto;
+    font-size: 0.9em; /* Slightly smaller font */
+    background-color: #F56600 !important; /* Clemson orange */
+    color: white !important;
+    border-color: #F56600 !important;
+    line-height: 1.5; /* Control the line height */
 }
 
-#send-button {
-    background-color: #F56600; /* Clemson orange */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    padding: 8px 15px;
-    cursor: pointer;
-}
-
-#send-button:hover {
-    background-color: #522D80; /* Clemson purple */
+#hint-button:hover {
+    background-color: #D15500 !important; /* Slightly darker orange for hover state */
 }

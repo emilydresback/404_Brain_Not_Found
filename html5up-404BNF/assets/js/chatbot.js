@@ -1,7 +1,6 @@
 // Chatbot functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const userInput = document.getElementById('user-input');
-    const sendButton = document.getElementById('send-button');
+    const hintButton = document.getElementById('hint-button');
     const chatMessages = document.getElementById('chat-messages');
     
     // Riddles for each location
@@ -11,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
         "Books and knowledge fill my floors, students study behind my doors. What am I?",
         "A peaceful garden where plants grow, botanical knowledge on display and show. What am I?",
         "A center for students to gather and meet, with food and activities that can't be beat. What am I?"
+    ];
+    
+    // Hints for each riddle
+    const hints = [
+        "This building has been the face of Clemson since 1893.",
+        "The official name of this place is Memorial Stadium.",
+        "Students often pull all-nighters here during finals week.",
+        "This location features plants from around the world in a tranquil setting.",
+        "Named after a former Clemson student body president who died in 1994."
     ];
     
     let currentRiddle = 0;
@@ -29,40 +37,13 @@ document.addEventListener('DOMContentLoaded', function() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     
-    // Function to add user message
-    function addUserMessage(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'user-message';
-        messageDiv.textContent = message;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-    
-    // Function to handle user input
-    function handleUserInput() {
-        const message = userInput.value.trim();
-        if (message) {
-            addUserMessage(message);
-            userInput.value = '';
-            
-            // Simple response logic (can be expanded)
-            setTimeout(function() {
-                if (currentRiddle < riddles.length - 1) {
-                    addBotMessage("Good effort! Here's your next clue:");
-                    currentRiddle++;
-                    addBotMessage(riddles[currentRiddle]);
-                } else {
-                    addBotMessage("Congratulations! You've solved all the riddles. Now explore the campus to find all the locations!");
-                }
-            }, 1000);
+    // Function to show hint
+    function showHint() {
+        if (currentRiddle < hints.length) {
+            addBotMessage("Hint: " + hints[currentRiddle]);
         }
     }
     
-    // Event listeners
-    sendButton.addEventListener('click', handleUserInput);
-    userInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            handleUserInput();
-        }
-    });
+    // Event listener for hint button
+    hintButton.addEventListener('click', showHint);
 });
