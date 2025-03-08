@@ -157,7 +157,8 @@ async function getRiddlesForPOIs(pois) {
         const data = await response.json();
         return pois.map((poi, index) => ({
             ...poi,
-            riddle: data.choices[0].message.content.split("\n")[index] || "No riddle available."
+            riddle: data.choices[0].message.content.split("\n")[index] || "No riddle available.",
+            isFound: false
         }));
     } catch (error) {
         console.error("Error generating riddles:", error);
