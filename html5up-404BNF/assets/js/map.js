@@ -1,7 +1,4 @@
-// maps.js - Shows a map centered on user's location using Leaflet and OpenStreetMap
 
-<<<<<<< HEAD
-=======
 // Fetch API key from server
 /*fetch('/maps-api-key')
   .then(response => response.json())
@@ -25,7 +22,6 @@ script.async = true;
 script.defer = true;
 document.body.appendChild(script);
   
->>>>>>> 3b2474c17de1fe7def7c818317246f2075c86acd
 // Global variables
 let map;
 let userMarker;

@@ -1,135 +1,188 @@
-// chatbot.js - Direct OpenAI API version
-
-// Get DOM elements
-const hintButton = document.getElementById('hint-button');
-const chatbox = document.querySelector(".chatbox");
-let riddleStarted = false;
-let waitingForResponse = false;
-
-// OpenAI API endpoint
-const API_URL = "https://api.openai.com/v1/chat/completions";
-
-// API key 
-const OPENAI_API_KEY = os.getenv("OPENAI_API_KEY");
-
-// Conversation history for context
-let conversationHistory = [
-    {
-        role: "system",
-        content: "You are an AI guide for a Clemson University scavenger hunt called DeathValleyDash. Your job is to provide riddles about Clemson campus landmarks and give hints when asked. Keep responses under 50 words. Begin by welcoming the user. When they click 'Start', provide a riddle about a Clemson landmark. When they click 'Hint', provide a hint for your most recent riddle without revealing the answer."
-    }
-];
-
-// Function to create and add a message to the chat
-function addMessage(text, isBot) {
-    const chatLi = document.createElement("li");
-    chatLi.classList.add("chat");
-    chatLi.classList.add(isBot ? "chat-incoming" : "chat-outgoing");
-    chatLi.innerHTML = `<p>${text}</p>`;
-    chatbox.appendChild(chatLi);
-    chatbox.scrollTop = chatbox.scrollHeight;
-    return chatLi;
-}
-
-// Function to show a loading message
-function showLoading() {
-    return addMessage("Thinking...", true);
-}
-
-// Generate response from OpenAI API
-async function generateResponse(userAction) {
-    // Add user action to conversation history
-    conversationHistory.push({
-        role: "user",
-        content: userAction
-    });
-    
-    const loadingMessage = showLoading();
-    
-    try {
-        // Log what we're sending
-        console.log("Sending request to OpenAI API...");
-        
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "gpt-3.5-turbo",
-                messages: conversationHistory,
-                max_tokens: 150,
-                temperature: 0.7
-            })
-        });
-        
-        console.log("Response status:", response.status);
-        
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("API Error Response:", errorText);
-            throw new Error(`API error: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("API Response received:", data);
-        
-        // Get the response text
-        const aiMessage = data.choices[0].message.content;
-        
-        // Update loading message with actual response
-        loadingMessage.innerHTML = `<p>${aiMessage}</p>`;
-        
-        // Add AI response to conversation history
-        conversationHistory.push({
-            role: "assistant",
-            content: aiMessage
-        });
-        
-        // Limit context size to prevent token limits
-        if (conversationHistory.length > 10) {
-            conversationHistory = [
-                conversationHistory[0], // Keep system prompt
-                ...conversationHistory.slice(-9) // Keep last 9 messages
-            ];
-        }
-        
-    } catch (error) {
-        console.error("Error details:", error);
-        loadingMessage.innerHTML = `<p>Sorry, I'm having trouble connecting to my AI services. Please try again or check console for details.</p>`;
-    } finally {
-        waitingForResponse = false;
-    }
-}
-
-// Handle button click
-hintButton.addEventListener("click", function() {
-    // Prevent multiple clicks while waiting for response
-    if (waitingForResponse) return;
-    waitingForResponse = true;
-    
-    if (!riddleStarted) {
-        // First click - Start the game
-        riddleStarted = true;
-        hintButton.textContent = "Hint";
-        generateResponse("Start the scavenger hunt. Give me a riddle about a Clemson landmark.");
-    } else {
-        // Subsequent clicks - Give hint
-        generateResponse("I need a hint for the current riddle, please.");
-    }
-});
-
-// Add initial welcome message on page load
+// Chatbot and Riddle Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Clear any existing messages
-    while (chatbox.firstChild) {
-        chatbox.removeChild(chatbox.firstChild);
-    }
+    // DOM Elements
+    const chatMessages = document.getElementById('chat-messages');
+    const riddleText = document.getElementById('riddle-text');
+    const startButton = document.getElementById('start-button');
+    const hintButton = document.getElementById('hint-button');
+    const huntStatus = document.getElementById('hunt-status');
+    
+    // Clemson campus scavenger hunt riddles
+    const riddles = [
+        {
+            text: "I roar with the crowd on Saturdays, my name suggests danger and doom. Find me where 80,000+ fans wear orange and make noise.",
+            hint: "Howard's Rock is rubbed before players Run Down The Hill here.",
+            location: "Memorial Stadium (Death Valley)"
+        },
+        {
+            text: "Wisdom flows like water at this campus heart. Look for Cooper's name and scholars hard at work.",
+            hint: "The main library has a reflection pond outside where students often study.",
+            location: "Cooper Library & Reflection Pond"
+        },
+        {
+            text: "Rub my paw for luck as the semester ends, I'm cast in bronze and watch over campus. Seek the class of '39 gift.",
+            hint: "This tiger statue is located outside the football stadium's east entrance.",
+            location: "Tiger Statue at Howard's Rock"
+        },
+        {
+            text: "Named for a plant scientist, I'm where future farmers learn. Look for tractors and greenhouses nearby.",
+            hint: "This agricultural building is named after a former Clemson botanist and teacher.",
+            location: "Poole Agricultural Center"
+        },
+        {
+            text: "My amphitheater hosts concerts and events, built into a hillside on campus. Romans would approve of my design.",
+            hint: "Located near the Cooper Library, this outdoor venue hosts many campus events.",
+            location: "Outdoor Amphitheater"
+        },
+        {
+            text: "Find where the clocktower chimes, surrounded by bricks bearing alumni names. My garden honors a 10th president.",
+            hint: "This garden features a carillon bell tower and commemorative bricks.",
+            location: "Carillon Garden"
+        },
+        {
+            text: "Tigers shop, eat, and gather in this modern center named for a president. Look for bowling balls and Post Office boxes.",
+            hint: "This student center has dining, a bookstore, and recreational facilities.",
+            location: "Hendrix Student Center"
+        },
+        {
+            text: "Original heart of campus, I'm the oldest building with a bell tower. My iconic image represents Clemson itself.",
+            hint: "This historic building was the first constructed on campus and appears in the Clemson logo.",
+            location: "Tillman Hall (Old Main)"
+        },
+        {
+            text: "Mathematical mysteries and computer science happen here. Named for a generous couple, I'm where tech tigers code.",
+            hint: "This building houses the School of Computing and is named for benefactors.",
+            location: "McAdams Hall"
+        },
+        {
+            text: "Athletes train in my waters to become champions. Look for lanes, diving boards, and orange tiger paws.",
+            hint: "This aquatic facility is where the swimming and diving teams compete.",
+            location: "Fike Recreation Center Pool"
+        }
+    ];
+    
+    // Hunt state
+    let huntStarted = false;
+    let currentRiddleIndex = -1;
     
     // Add welcome message
-    addMessage("Welcome to DeathValleyDash! I'll guide you with riddles about hidden locations around Clemson. Click 'Start' to begin the adventure!", true);
+    function addSystemMessage(message) {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'system-message';
+        messageEl.style.marginBottom = '10px';
+        messageEl.style.padding = '10px';
+        messageEl.style.backgroundColor = '#f0f0f0';
+        messageEl.style.borderRadius = '5px';
+        messageEl.style.borderLeft = '3px solid #F56600';
+        messageEl.textContent = message;
+        chatMessages.appendChild(messageEl);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Add welcome message on load
+    addSystemMessage("Welcome to Death Valley Dash! I'm your AI Riddle Master. Press 'Start Hunt' to begin your adventure around Clemson's campus. Each riddle will lead you to a new location, and you can verify when you arrive using the 'Verify Location' button on the map.");
+    
+    // Start button click handler
+    startButton.addEventListener('click', function() {
+        if (!huntStarted) {
+            // Start the hunt
+            huntStarted = true;
+            currentRiddleIndex = 0;
+            huntStatus.textContent = "Hunt in progress";
+            
+            // Update button display
+            startButton.style.display = 'none';
+            hintButton.style.display = 'block';
+            hintButton.style.width = '100%'; // Make hint button take full width
+            
+            // Display first riddle
+            riddleText.textContent = riddles[currentRiddleIndex].text;
+            addSystemMessage("Your hunt has begun! Solve the riddle and find the location on campus. Use the map to navigate and the 'Verify Location' button when you think you're in the right spot.");
+            
+            // Update progress bar to show first node as active
+            updateProgressUI(1);
+        }
+    });
+    
+    // Hint button click handler
+    hintButton.addEventListener('click', function() {
+        if (huntStarted && currentRiddleIndex >= 0 && currentRiddleIndex < riddles.length) {
+            addSystemMessage("Hint: " + riddles[currentRiddleIndex].hint);
+        }
+    });
+    
+    // Function to advance to next riddle
+    window.advanceToNextRiddle = function() {
+        if (huntStarted && currentRiddleIndex < riddles.length - 1) {
+            currentRiddleIndex++;
+            riddleText.textContent = riddles[currentRiddleIndex].text;
+            addSystemMessage(`Great job! You've found location ${currentRiddleIndex}. Here's your next riddle.`);
+            
+            // Update progress
+            updateProgressUI(currentRiddleIndex + 1);
+        } else if (huntStarted && currentRiddleIndex === riddles.length - 1) {
+            // Hunt completed
+            addSystemMessage("Congratulations! You've completed the Death Valley Dash! You've successfully found all the locations on campus. Claim your prize at the Student Union.");
+            huntStatus.textContent = "Hunt completed";
+            hintButton.style.display = 'none';
+            startButton.textContent = "Hunt Completed";
+            startButton.style.display = 'block';
+            startButton.disabled = true;
+            
+            // Update progress to completed
+            updateProgressUI(riddles.length);
+        }
+    };
+    
+    // This would be connected to the verify-location-btn
+    document.getElementById('verify-location-btn').addEventListener('click', function() {
+        // This is where you would check if the user is actually at the correct location
+        // For this demo, we'll just simulate successful verification
+        
+        // In a real implementation, you would check the user's GPS location against
+        // the target location coordinates. If close enough, call advanceToNextRiddle()
+        
+        // Simulate verification (replace with actual verification logic)
+        if (huntStarted && currentRiddleIndex >= 0 && currentRiddleIndex < riddles.length) {
+            setTimeout(() => {
+                // Simulating successful verification
+                advanceToNextRiddle();
+            }, 1500);
+            
+            addSystemMessage("Verifying your location...");
+        } else if (!huntStarted) {
+            addSystemMessage("Please start the hunt first by clicking the 'Start Hunt' button.");
+        }
+    });
+    
+    // Update progress UI
+    function updateProgressUI(step) {
+        // Get all progress nodes
+        const nodes = document.querySelectorAll('.progress-node');
+        const progressFill = document.getElementById('progress-fill');
+        
+        // Calculate progress percentage
+        const progressPercent = ((step - 1) / (riddles.length - 1)) * 100;
+        progressFill.style.width = `${progressPercent}%`;
+        
+        // Update node styles
+        nodes.forEach((node, index) => {
+            if (index + 1 < step) {
+                // Completed nodes
+                node.style.backgroundColor = '#F56600';
+                node.style.borderColor = '#F56600';
+                node.style.color = 'white';
+            } else if (index + 1 === step) {
+                // Current node
+                node.style.backgroundColor = '#F56600';
+                node.style.borderColor = '#F56600';
+                node.style.color = 'white';
+            } else {
+                // Future nodes
+                node.style.backgroundColor = '#f1f1f1';
+                node.style.borderColor = '#ccc';
+                node.style.color = '#333';
+            }
+        });
+    }
 });
-
-// Log when the script is loaded
-console.log("Chatbot script loaded successfully!");

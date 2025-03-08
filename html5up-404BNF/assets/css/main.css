@@ -3253,53 +3253,94 @@ section .hunt-progress-container,
   margin: 0 !important;
 }
 
-/* Chatbot styles */
-.chatbot-wrapper {
-	position: fixed;
-	bottom: 20px;
-	right: 20px;
-	z-index: 1000;
-  }
-  
-  /* Override Vectara default styles to match Clemson theme */
-  .vectara-chatbot-header {
-	background-color: #F56600 !important; /* Clemson orange */
-  }
-  
-  .vectara-chatbot-send-button {
-	background-color: #F56600 !important;
-  }
-  
-  .vectara-chatbot-bot-message {
-	background-color: #f1f1f1 !important;
-	color: #333 !important;
-  }
 
 
 
-  
+
+
+
 
 #hint-button {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    padding: 6px 15px;
-    height: auto;
-    font-size: 0.9em;
-    background-color: #F56600 !important; /* Clemson orange */
+    line-height: 0.8 !important;
+    padding-top: 8px !important;
     color: white !important;
-    border-color: #F56600 !important;
-    line-height: 1.5;
+}/* Chatbot Styling */
+#chatbot-container {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#chatbot-container:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+#chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: #F56600 #f1f1f1;
+    color: #000000;
+    text-align: left;
+}
+
+#chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+    background-color: #F56600;
+    border-radius: 10px;
+    border: 2px solid #f1f1f1;
+}
+
+.system-message {
+    animation: fadeIn 0.5s;
+}
+
+#current-riddle {
+    transition: background-color 0.3s ease;
+}
+
+#current-riddle:hover {
+    background-color: #e8e8e8;
+}
+
+#start-button, #hint-button {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 4px;
     cursor: pointer;
+    font-size: 1em;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#hint-button:hover {
-    background-color: #D15500 !important; /* Slightly darker orange for hover state */
+#start-button:hover, #hint-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Remove the conflicting styles */
-.chatBot, header h2, #cross, .chat-input, #sendBTN, .lastMessage {
-    display: none;
+#start-button:active, #hint-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#hunt-status {
+    font-size: 0.9em;
+    background-color: rgba(255,255,255,0.2);
+    padding: 3px 8px;
+    border-radius: 10px;
+}
+
+/* Animation for messages */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 
