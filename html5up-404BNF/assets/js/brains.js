@@ -1,3 +1,6 @@
+// Load environment variables from .env file
+require('dotenv').config();
+
 let riddleMap = new Map(); // Global storage for POIs and their riddles
 
 async function getPointsOfInterest(lat, lng) {
