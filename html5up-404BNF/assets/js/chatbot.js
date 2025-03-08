@@ -6,10 +6,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const startButton = document.getElementById('start-button');
     const hintButton = document.getElementById('hint-button');
     const huntStatus = document.getElementById('hunt-status');
-
+    
+    // Get a random subset of riddles
+    function getRandomRiddles(allRiddles, count) {
+        // Make a copy of the array to avoid modifying the original
+        const riddlesCopy = [...allRiddles];
+        
+        // Shuffle the array using Fisher-Yates algorithm
+        for (let i = riddlesCopy.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [riddlesCopy[i], riddlesCopy[j]] = [riddlesCopy[j], riddlesCopy[i]];
+        }
+        
+        // Return the first 'count' elements
+        return riddlesCopy.slice(0, count);
+    }
     
     // Clemson campus scavenger hunt riddles
-const riddles = [
+const allRiddles = [
     {
         text: "I roar with the crowd on Saturdays, my name suggests danger and doom. Find me where 80,000+ fans wear orange and make noise.",
         hint: "Howard's Rock is rubbed before players Run Down The Hill here.",
@@ -258,7 +272,9 @@ const riddles = [
 ];
     
     
-
+    // Select 5 random riddles for this session
+    const riddles = getRandomRiddles(allRiddles, 5);
+    
     // Hunt state
     let huntStarted = false;
     let currentRiddleIndex = -1;
@@ -324,17 +340,32 @@ const riddles = [
     // Function to advance to next riddle (called by the progress system)
     window.advanceToNextRiddle = function() {
         if (huntStarted && currentRiddleIndex < riddles.length - 1) {
+            // Get location of the solved riddle
+            const solvedLocation = riddles[currentRiddleIndex].location;
+            
+            // Advance to next riddle
             currentRiddleIndex++;
             riddleText.textContent = riddles[currentRiddleIndex].text;
-            addSystemMessage(`Great job! Here's your next riddle.`);
+            
+            // Show success message with the location
+            addSystemMessage(`Correct! You found ${solvedLocation}! Here's your next riddle.`);
+            
+            // Make riddles available to the progress system
+            window.riddles = riddles;
         } else if (huntStarted && currentRiddleIndex === riddles.length - 1) {
+            // Get location of the final solved riddle
+            const solvedLocation = riddles[currentRiddleIndex].location;
+            
             // Hunt completed
-            addSystemMessage("Congratulations! You've completed the Death Valley Dash! You've successfully found all the locations on campus. Claim your prize at the Student Union.");
+            addSystemMessage(`Correct! You found ${solvedLocation}! Congratulations! You've completed the Death Valley Dash! You've successfully found all the locations on campus. Claim your prize at the Student Union.`);
             huntStatus.textContent = "Hunt completed";
             hintButton.style.display = 'none';
             startButton.textContent = "Hunt Completed";
             startButton.style.display = 'block';
             startButton.disabled = true;
+            
+            // Make riddles available to the progress system
+            window.riddles = riddles;
         }
     };
     
