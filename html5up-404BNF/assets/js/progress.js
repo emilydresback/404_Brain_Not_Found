@@ -1,50 +1,55 @@
-// Progress bar functionality for DeathValleyDash
-// This file should be assets/js/progress.js
-
-// Variables to track scavenger hunt progress
-let totalLocations = 5; // Update this with the actual number of locations in your hunt
-let foundLocations = 0;
-
-// Function to update the progress bar
-function updateProgressBar(percent) {
-  const progressBar = document.getElementById("myProgressBar");
-  if (progressBar) {
-    progressBar.style.width = percent + "%";
-  }
-}
-
-// Function to update progress when a new location is found
-function locationFound() {
-  foundLocations++;
-  const percentComplete = (foundLocations / totalLocations) * 100;
-  updateProgressBar(percentComplete);
-  
-  // You could add more functionality here like celebratory animations
-  // or displaying messages when progress reaches certain milestones
-  
-  if (foundLocations === totalLocations) {
-    // Hunt completed!
-    alert("Congratulations! You've completed the Death Valley Dash!");
-  }
-}
-
-// Initialize progress bar
-document.addEventListener('DOMContentLoaded', function() {
-  updateProgressBar(0); // Start with 0% progress
-  
-  // Make the progress bar advance when clicked (for testing purposes)
-  // Remove this in production or replace with actual location detection
-  const progressContainer = document.querySelector('.progress-container');
-  if (progressContainer) {
-    progressContainer.addEventListener('click', function() {
+// Progress bar with nodes script
+(function() {
+    // Get the progress bar fill element
+    var progressFill = document.getElementById('progress-fill');
+    
+    // Get all node elements
+    var nodes = document.querySelectorAll('.progress-node');
+    
+    // Set up variables
+    var totalLocations = 5;
+    var foundLocations = 0;
+    
+    // Function to update progress
+    function updateProgress(locationNumber) {
+      // Update the progress bar width
+      var percent = (locationNumber / totalLocations) * 100;
+      progressFill.style.width = percent + '%';
+      
+      // Update nodes - mark completed nodes
+      for (var i = 0; i < nodes.length; i++) {
+        if (i < locationNumber) {
+          // Completed nodes
+          nodes[i].style.backgroundColor = '#F56600';
+          nodes[i].style.borderColor = '#D45500';
+          nodes[i].style.color = 'white';
+        } else {
+          // Incomplete nodes
+          nodes[i].style.backgroundColor = '#f1f1f1';
+          nodes[i].style.borderColor = '#ccc';
+          nodes[i].style.color = 'black';
+        }
+      }
+      
+      console.log('Progress updated to location ' + locationNumber + ' of ' + totalLocations);
+      
+      if (locationNumber === totalLocations) {
+        setTimeout(function() {
+          alert('Congratulations! You completed the Death Valley Dash!');
+        }, 600);
+      }
+    }
+    
+    // Make the progress bar or any node clickable to advance progress (for testing)
+    document.addEventListener('click', function(event) {
+      // Only update if we haven't reached max
       if (foundLocations < totalLocations) {
-        locationFound();
-        console.log("Progress updated: " + foundLocations + "/" + totalLocations);
+        foundLocations++;
+        updateProgress(foundLocations);
       }
     });
-  }
-});
-
-// This function should be called from your map.js or chatbot.js 
-// whenever a user successfully finds a location
-// Example usage: locationFound();
+    
+    // Initialize
+    console.log('Node-based progress bar initialized');
+    updateProgress(0);
+  })();
