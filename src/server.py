@@ -53,7 +53,7 @@ def get_coordinates():
 
 def get_riddle(lat, lon):
     """ Generate a riddle based on the given coordinates """
-    return get_openai_response(f"Use these coordinates: Latitude {lat}, Longitude {lon} to generate a riddle about the point of interest.")
+    return get_openai_response(f"Use these coordinates: Latitude {lat}, Longitude {lon} to generate a riddle about the point of interest. Do not list the coordinates, they are a secret.")
 
 def get_hint(lat, lon):
     """ Generate a hint based on the given coordinates """
