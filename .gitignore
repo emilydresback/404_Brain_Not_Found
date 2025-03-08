@@ -9,6 +9,7 @@
 *.pem
 config.js
 config.json
+env.js
 
 # Dependencies
 node_modules/
@@ -40,6 +41,7 @@ yarn-error.log*
 *.tmp
 *.temp
 .cache/
+env.js
 
 # System Files
 .DS_Store
