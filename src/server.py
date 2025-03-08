@@ -1,14 +1,24 @@
 import os
 import requests
 import json
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+#print(f"Loading .env from: {env_path}")
+load_dotenv(env_path)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+
+# Check if the key is missing
+if not os.getenv("OPENAI_API_KEY"):
+    raise ValueError("API key is missing. Set OPENAI_API_KEY in your .env file.")
+
+# The rest of the code starts here (no unintended indentation)
+#print("Environment variables loaded successfully!")  # This should execute normally
 
 def get_openai_response(prompt):
-    """ Helper function to call OpenAI API """
-    if not OPENAI_API_KEY:
-        raise ValueError("API key is missing. Set OPENAI_API_KEY as an environment variable.")
-
     url = "https://api.openai.com/v1/chat/completions"
     payload = {
         "model": "gpt-3.5-turbo",
@@ -16,18 +26,18 @@ def get_openai_response(prompt):
     }
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {os.getenv('OPENAI_API_KEY')}"
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "OpenAI-Organization": "org-JMxuF9HmWOoA5Yup74F4rENl"  # <--- Add this line
     }
 
-    # Ensure all values are clean ASCII strings
-    headers = {k: v.encode("ascii", "ignore").decode() for k, v in headers.items()}
-    
     response = requests.post(url, headers=headers, json=payload)
-    try:
-        response_data = response.json()
-        return response_data["choices"][0]["message"]["content"]
-    except KeyError:
-        raise ValueError(f"Unexpected API response: {response_data}")
+    response_data = response.json()
+
+    if "error" in response_data:
+        raise ValueError(f"API Error: {response_data['error']['message']}")
+
+    return response_data["choices"][0]["message"]["content"]
+
 
 def get_coordinates():
     """ Fetch a random location's coordinates at Clemson University """
