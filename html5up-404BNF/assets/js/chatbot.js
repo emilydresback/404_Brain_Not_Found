@@ -1,146 +1,135 @@
-// Chatbot functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const hintButton = document.getElementById('hint-button');
-    const chatMessages = document.getElementById('chat-messages');
-    
-    // Riddles for each location
-    const riddles = [
-        "I stand tall with a clock on my face, Clemson's most iconic place. What am I?",
-        "Tigers roar within my walls, 80,000 strong for football calls. What am I?",
-        "Books and knowledge fill my floors, students study behind my doors. What am I?",
-        "A peaceful garden where plants grow, botanical knowledge on display and show. What am I?",
-        "A center for students to gather and meet, with food and activities that can't be beat. What am I?"
-    ];
-    
-    // Hints for each riddle
-    const hints = [
-        "This building has been the face of Clemson since 1893.",
-        "The official name of this place is Memorial Stadium.",
-        "Students often pull all-nighters here during finals week.",
-        "This location features plants from around the world in a tranquil setting.",
-        "Named after a former Clemson student body president who died in 1994."
-    ];
-    
-    let currentRiddle = 0;
-    
-    // Send first riddle after a delay
-    setTimeout(function() {
-        addBotMessage(riddles[currentRiddle]);
-    }, 1000);
-    
-    // Function to add bot message
-    function addBotMessage(message) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'bot-message';
-        messageDiv.textContent = message;
-        chatMessages.appendChild(messageDiv);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-    
-    // Function to show hint
-    function showHint() {
-        if (currentRiddle < hints.length) {
-            addBotMessage("Hint: " + hints[currentRiddle]);
-        }
-    }
-    
-    // Event listener for hint button
-    hintButton.addEventListener('click', showHint);
+// chatbot.js - Direct OpenAI API version
 
-});
-
-// OpenAI call handling
-
-const chatInput = 
-    document.querySelector('.chat-input textarea');
-const sendChatBtn = 
-    document.querySelector('.chat-input button');
+// Get DOM elements
+const hintButton = document.getElementById('hint-button');
 const chatbox = document.querySelector(".chatbox");
+let riddleStarted = false;
+let waitingForResponse = false;
 
-let userMessage;
-const API_KEY = 
-    "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";
+// OpenAI API endpoint
+const API_URL = "https://api.openai.com/v1/chat/completions";
 
-//OpenAI Free APIKey
+// API key 
+const API_KEY = "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";
 
-const createChatLi = (message, className) => {
+// Conversation history for context
+let conversationHistory = [
+    {
+        role: "system",
+        content: "You are an AI guide for a Clemson University scavenger hunt called DeathValleyDash. Your job is to provide riddles about Clemson campus landmarks and give hints when asked. Keep responses under 50 words. Begin by welcoming the user. When they click 'Start', provide a riddle about a Clemson landmark. When they click 'Hint', provide a hint for your most recent riddle without revealing the answer."
+    }
+];
+
+// Function to create and add a message to the chat
+function addMessage(text, isBot) {
     const chatLi = document.createElement("li");
-    chatLi.classList.add("chat", className);
-    let chatContent = 
-        className === "chat-outgoing" ? `<p>${message}</p>` : `<p>${message}</p>`;
-    chatLi.innerHTML = chatContent;
+    chatLi.classList.add("chat");
+    chatLi.classList.add(isBot ? "chat-incoming" : "chat-outgoing");
+    chatLi.innerHTML = `<p>${text}</p>`;
+    chatbox.appendChild(chatLi);
+    chatbox.scrollTop = chatbox.scrollHeight;
     return chatLi;
 }
 
-const generateResponse = (incomingChatLi) => {
-    const API_URL = "https://api.openai.com/v1/chat/completions";
-    const messageElement = incomingChatLi
-    .querySelector("p");
-    const requestOptions = {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${API_KEY}`
-        },
-        body: JSON.stringify({
-            "model": "gpt-3.5-turbo",
-            "messages": [
-                {
-                    role: "user",
-                    content: userMessage
-                }
-            ]
-        })
-    };
-
-    fetch(API_URL, requestOptions)
-        .then(res => {
-            if (!res.ok) {
-                throw new Error("Network response was not ok");
-            }
-            return res.json();
-        })
-        .then(data => {
-            messageElement
-            .textContent = data.choices[0].message.content;
-        })
-        .catch((error) => {
-            messageElement
-            .classList.add("error");
-            messageElement
-            .textContent = "Oops! Something went wrong. Please try again!";
-        })
-        .finally(() => chatbox.scrollTo(0, chatbox.scrollHeight));
-};
-
-
-const handleChat = () => {
-    userMessage = chatInput.value.trim();
-    if (!userMessage) {
-        return;
-    }
-    chatbox
-    .appendChild(createChatLi(userMessage, "chat-outgoing"));
-    chatbox
-    .scrollTo(0, chatbox.scrollHeight);
-
-    setTimeout(() => {
-        const incomingChatLi = createChatLi("Thinking...", "chat-incoming")
-        chatbox.appendChild(incomingChatLi);
-        chatbox.scrollTo(0, chatbox.scrollHeight);
-        generateResponse(incomingChatLi);
-    }, 600);
+// Function to show a loading message
+function showLoading() {
+    return addMessage("Thinking...", true);
 }
 
-sendChatBtn.addEventListener("click", handleChat);
-
-function cancel() {
-    let chatbotcomplete = document.querySelector(".chatBot");
-    if (chatbotcomplete.style.display != 'none') {
-        chatbotcomplete.style.display = "none";
-        let lastMsg = document.createElement("p");
-        lastMsg.textContent = 'Thanks for using our Chatbot!';
-        lastMsg.classList.add('lastMessage');
-        document.body.appendChild(lastMsg)
+// Generate response from OpenAI API
+async function generateResponse(userAction) {
+    // Add user action to conversation history
+    conversationHistory.push({
+        role: "user",
+        content: userAction
+    });
+    
+    const loadingMessage = showLoading();
+    
+    try {
+        // Log what we're sending
+        console.log("Sending request to OpenAI API...");
+        
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: conversationHistory,
+                max_tokens: 150,
+                temperature: 0.7
+            })
+        });
+        
+        console.log("Response status:", response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error("API Error Response:", errorText);
+            throw new Error(`API error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log("API Response received:", data);
+        
+        // Get the response text
+        const aiMessage = data.choices[0].message.content;
+        
+        // Update loading message with actual response
+        loadingMessage.innerHTML = `<p>${aiMessage}</p>`;
+        
+        // Add AI response to conversation history
+        conversationHistory.push({
+            role: "assistant",
+            content: aiMessage
+        });
+        
+        // Limit context size to prevent token limits
+        if (conversationHistory.length > 10) {
+            conversationHistory = [
+                conversationHistory[0], // Keep system prompt
+                ...conversationHistory.slice(-9) // Keep last 9 messages
+            ];
+        }
+        
+    } catch (error) {
+        console.error("Error details:", error);
+        loadingMessage.innerHTML = `<p>Sorry, I'm having trouble connecting to my AI services. Please try again or check console for details.</p>`;
+    } finally {
+        waitingForResponse = false;
     }
 }
+
+// Handle button click
+hintButton.addEventListener("click", function() {
+    // Prevent multiple clicks while waiting for response
+    if (waitingForResponse) return;
+    waitingForResponse = true;
+    
+    if (!riddleStarted) {
+        // First click - Start the game
+        riddleStarted = true;
+        hintButton.textContent = "Hint";
+        generateResponse("Start the scavenger hunt. Give me a riddle about a Clemson landmark.");
+    } else {
+        // Subsequent clicks - Give hint
+        generateResponse("I need a hint for the current riddle, please.");
+    }
+});
+
+// Add initial welcome message on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Clear any existing messages
+    while (chatbox.firstChild) {
+        chatbox.removeChild(chatbox.firstChild);
+    }
+    
+    // Add welcome message
+    addMessage("Welcome to DeathValleyDash! I'll guide you with riddles about hidden locations around Clemson. Click 'Start' to begin the adventure!", true);
+});
+
+// Log when the script is loaded
+console.log("Chatbot script loaded successfully!");
