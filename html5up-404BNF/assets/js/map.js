@@ -1,6 +1,6 @@
 
 // Fetch API key from server
-fetch('/maps-api-key')
+/*fetch('/maps-api-key')
   .then(response => response.json())
   .then(data => {
     const script = document.createElement('script');
@@ -13,8 +13,15 @@ fetch('/maps-api-key')
   .catch(error => {
     console.error('Error loading API key:', error);
     document.getElementById('map-status').textContent = 'Error loading map. Please try again later.';
-  });
+  });*/
 
+const script = document.createElement('script');
+const apiKey = env.GOOGLE_MAPS_API_KEY; // TODO: Replace with API Key
+script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
+script.async = true;
+script.defer = true;
+document.body.appendChild(script);
+  
 // Global variables
 let map;
 let userMarker;
