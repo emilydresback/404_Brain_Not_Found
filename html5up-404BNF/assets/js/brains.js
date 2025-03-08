@@ -1,5 +1,5 @@
 // Load environment variables from .env file
-//require('dotenv').config();
+require('dotenv').config();
 
 let riddleMap = new Map(); // Global storage for POIs and their riddles
 

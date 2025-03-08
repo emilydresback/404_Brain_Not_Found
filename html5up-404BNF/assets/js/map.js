@@ -1,6 +1,6 @@
 
 // Load environment variables from .env file
-//require('dotenv').config();
+require('dotenv').config();
 
 // Fetch API key from server
 /*fetch('/maps-api-key')
