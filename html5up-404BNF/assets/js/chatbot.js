@@ -10,7 +10,7 @@ let waitingForResponse = false;
 const API_URL = "https://api.openai.com/v1/chat/completions";
 
 // API key - ADD YOUR KEY WHEN TESTING LOCALLY, REMOVE BEFORE PUSHING TO GITHUB
-const apiKey = process.env.OPENAI_API_KEY || "";
+const apiKey = ;
 
 // Conversation history for context
 let conversationHistory = [
